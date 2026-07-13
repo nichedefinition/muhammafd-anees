@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ad Blueprint Generator — Load Scraped Data</title>
+  <meta name="description" content="Load scraped product data and generate 40 platform-ready ad templates instantly." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #060914; --surface: #0c0f21; --surface2: #131729;
+      --glass: rgba(255,255,255,0.04); --glass2: rgba(255,255,255,0.07);
+      --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.14);
+      --text: #eef0ff; --dim: #8b8fb5; --mute: #3d4166;
+      --cyan: #22d3ee; --purple: #a78bfa; --pink: #f472b6;
+      --green: #34d399; --yellow: #fbbf24; --red: #f87171;
+      --radius: 14px;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+
+    .bg-mesh {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 60% 50% at 20% 10%, rgba(167,139,250,0.1) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 80% 80%, rgba(34,211,238,0.08) 0%, transparent 60%);
+    }
+
+    .app { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
+
+    /* ── Header ── */
+    .header { text-align: center; padding: 2.5rem 0 2rem; }
+    .header-badge {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.3);
+      border-radius: 99px; padding: 5px 14px; font-size: 0.75rem;
+      font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--purple); margin-bottom: 1rem;
+    }
+    .header h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.15; margin-bottom: 0.6rem; }
+    .header h1 span { background: linear-gradient(135deg, var(--cyan), var(--purple)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .header p { font-size: 0.95rem; color: var(--dim); max-width: 500px; margin: 0 auto; }
+
+    /* ── Step 1: Load Card ── */
+    .load-card {
+      background: var(--surface); border: 1.5px solid var(--border2);
+      border-radius: 20px; padding: 2.5rem; margin-bottom: 2rem;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4); text-align: center;
+    }
+    .load-card h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .load-card p { font-size: 0.88rem; color: var(--dim); margin-bottom: 1.75rem; line-height: 1.6; }
+
+    .load-options { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+
+    .load-option {
+      background: var(--surface2); border: 1.5px solid var(--border);
+      border-radius: 14px; padding: 1.5rem; text-align: left; position: relative; overflow: hidden;
+    }
+    .load-option h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .load-option p { font-size: 0.82rem; color: var(--dim); line-height: 1.5; margin-bottom: 1rem; }
+
+    .load-step {
+      position: absolute; top: 1rem; right: 1rem;
+      font-size: 1.8rem; font-weight: 900; color: rgba(255,255,255,0.04);
+      font-family: 'Outfit', sans-serif;
+    }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      border-radius: 99px; padding: 0.65rem 1.4rem;
+      font-family: 'Outfit', sans-serif; font-size: 0.875rem; font-weight: 700;
+      cursor: pointer; border: none; transition: all 0.25s; white-space: nowrap;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      color: #060914; box-shadow: 0 4px 20px rgba(34,211,238,0.25);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(34,211,238,0.4); }
+    .btn-ghost {
+      background: var(--glass2); border: 1.5px solid var(--border2);
+      color: var(--dim);
+    }
+    .btn-ghost:hover { border-color: var(--cyan); color: var(--cyan); }
+
+    /* File Input Hidden */
+    #jsonFileInput { display: none; }
+
+    /* Code block for command */
+    .code-block {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 0.75rem 1rem;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+      color: var(--cyan); text-align: left; word-break: break-all;
+      margin-bottom: 1rem;
+    }
+
+    /* ── Loaded Banner ── */
+    .loaded-banner {
+      display: none; background: rgba(52,211,153,0.08);
+      border: 1.5px solid rgba(52,211,153,0.3);
+      border-radius: 14px; padding: 1.25rem 1.5rem; margin-bottom: 2rem;
+      align-items: center; gap: 1rem;
+    }
+    .loaded-banner.visible { display: flex; }
+    .loaded-banner-icon { font-size: 1.5rem; }
+    .loaded-banner-text h3 { font-size: 1rem; font-weight: 700; color: var(--green); margin-bottom: 0.2rem; }
+    .loaded-banner-text p { font-size: 0.83rem; color: var(--dim); }
+    .loaded-banner-reload { margin-left: auto; font-size: 0.8rem; color: var(--mute); cursor: pointer; }
+    .loaded-banner-reload:hover { color: var(--red); }
+
+    /* ── Dashboard ── */
+    .dashboard { display: none; }
+    .dashboard.visible { display: block; }
+
+    .dashboard-grid { display: grid; grid-template-columns: 320px 1fr; gap: 1.5rem; align-items: start; }
+
+    /* ── Product Sidebar ── */
+    .product-sidebar {
+      background: var(--surface); border: 1px solid var(--border2);
+      border-radius: 16px; padding: 1.25rem; position: sticky; top: 80px;
+    }
+    .sidebar-title {
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--purple); margin-bottom: 1rem;
+    }
+    .product-list { display: flex; flex-direction: column; gap: 0.5rem; max-height: 460px; overflow-y: auto; }
+    .product-list::-webkit-scrollbar { width: 3px; }
+    .product-list::-webkit-scrollbar-thumb { background: var(--mute); border-radius: 99px; }
+
+    .product-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.65rem 0.9rem; background: var(--glass); border: 1px solid var(--border);
+      border-radius: 10px; cursor: pointer; transition: all 0.2s; gap: 0.5rem;
+    }
+    .product-row:hover { border-color: var(--cyan); background: rgba(34,211,238,0.05); }
+    .product-row.active { border-color: var(--cyan); background: rgba(34,211,238,0.1); box-shadow: 0 0 12px rgba(34,211,238,0.15); }
+    .prod-idx { font-size: 0.68rem; color: var(--mute); font-family: 'JetBrains Mono', monospace; flex-shrink: 0; }
+    .prod-name { font-size: 0.85rem; font-weight: 600; flex: 1; }
+    .prod-price { font-size: 0.78rem; color: var(--green); font-family: 'JetBrains Mono', monospace; flex-shrink: 0; }
+
+    /* Brand meta fields */
+    .meta-fields { margin-top: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem; }
+    .meta-field label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--dim); display: block; margin-bottom: 0.3rem; }
+    .meta-input {
+      width: 100%; background: var(--glass2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.5rem 0.75rem; color: var(--text);
+      font-family: 'Outfit', sans-serif; font-size: 0.83rem; outline: none;
+      transition: border-color 0.2s;
+    }
+    .meta-input:focus { border-color: var(--purple); }
+
+    /* ── Ads Panel ── */
+    .ads-panel { display: flex; flex-direction: column; gap: 1.25rem; }
+
+    .selected-product-banner {
+      background: linear-gradient(135deg, rgba(34,211,238,0.08), rgba(167,139,250,0.06));
+      border: 1px solid rgba(34,211,238,0.2); border-radius: 12px;
+      padding: 1rem 1.25rem; display: flex; align-items: center; gap: 1rem;
+    }
+    .spb-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--cyan); }
+    .spb-name { font-size: 1.1rem; font-weight: 800; }
+    .spb-count { margin-left: auto; font-size: 0.8rem; color: var(--dim); }
+
+    /* Category Tabs */
+    .category-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .cat-btn {
+      border: 1.5px solid var(--border); background: var(--glass);
+      border-radius: 99px; padding: 6px 16px; font-size: 0.8rem; font-weight: 600;
+      color: var(--dim); cursor: pointer; transition: all 0.2s; font-family: 'Outfit', sans-serif;
+    }
+    .cat-btn.active {
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      border-color: transparent; color: #060914;
+    }
+    .cat-btn:not(.active):hover { border-color: var(--cyan); color: var(--cyan); }
+
+    /* Export bar */
+    .export-bar { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .btn-export {
+      border: 1.5px solid; border-radius: 99px; padding: 6px 16px;
+      font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+      font-family: 'Outfit', sans-serif; background: transparent;
+    }
+    .btn-export-json { border-color: var(--cyan); color: var(--cyan); }
+    .btn-export-json:hover { background: rgba(34,211,238,0.1); }
+    .btn-export-txt { border-color: var(--purple); color: var(--purple); }
+    .btn-export-txt:hover { background: rgba(167,139,250,0.1); }
+
+    /* Ad Cards Grid */
+    .ads-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+    .ad-card {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.1rem; display: flex; flex-direction: column; gap: 0.7rem;
+    }
+    .ad-badge {
+      font-size: 0.62rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase;
+      padding: 3px 9px; border-radius: 4px; display: inline-block; align-self: flex-start;
+    }
+    .badge-google   { background: rgba(34,211,238,0.12); color: var(--cyan); }
+    .badge-facebook { background: rgba(167,139,250,0.12); color: var(--purple); }
+    .badge-instagram{ background: rgba(244,114,182,0.12); color: var(--pink); }
+    .badge-linkedin { background: rgba(96,165,250,0.12);  color: #60a5fa; }
+    .badge-email    { background: rgba(251,191,36,0.12);  color: var(--yellow); }
+
+    .ad-title { font-size: 0.88rem; font-weight: 700; }
+    .ad-body {
+      font-size: 0.8rem; color: var(--dim); line-height: 1.55;
+      background: var(--glass); border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.7rem; white-space: pre-wrap; word-break: break-word;
+      flex: 1;
+    }
+    .btn-copy {
+      border: 1px solid var(--border2); background: var(--glass);
+      color: var(--dim); border-radius: 6px; padding: 6px 12px;
+      font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+      font-family: 'Outfit', sans-serif; text-align: center;
+    }
+    .btn-copy:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(34,211,238,0.05); }
+    .btn-copy.copied { border-color: var(--green); color: var(--green); }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center; padding: 4rem 2rem;
+      color: var(--mute); font-size: 0.9rem;
+    }
+    .empty-state .big { font-size: 3rem; margin-bottom: 1rem; display: block; }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
+      background: rgba(52,211,153,0.15); border: 1px solid rgba(52,211,153,0.4);
+      color: #eef0ff; padding: 0.6rem 1.25rem; border-radius: 99px;
+      font-size: 0.85rem; font-weight: 600; z-index: 9999;
+      backdrop-filter: blur(8px); animation: fIn 0.2s ease;
+    }
+    @keyframes fIn { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .ad-image-container {
+      position: relative;
+      width: 100%;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 0.5rem;
+      border: 1px solid var(--border);
+      aspect-ratio: 4 / 3;
+      background: var(--surface);
+    }
+    .ad-image-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .img-loading {
+      position: absolute;
+      inset: 0;
+      background: rgba(6, 9, 20, 0.85);
+      backdrop-filter: blur(4px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--cyan);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .img-loading::before {
+      content: "";
+      width: 24px;
+      height: 24px;
+      border: 2.5px solid rgba(34, 211, 238, 0.25);
+      border-top-color: var(--cyan);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    .ad-actions {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr 0.8fr;
+      gap: 0.4rem;
+      margin-top: auto;
+    }
+    .btn-gen-img {
+      border-color: rgba(167, 139, 250, 0.4);
+      color: var(--purple);
+    }
+    .btn-gen-img:hover {
+      border-color: var(--purple);
+      background: rgba(167, 139, 250, 0.08);
+    }
+    .btn-share {
+      border-color: rgba(244, 114, 182, 0.4);
+      color: var(--pink);
+    }
+    .btn-share:hover {
+      border-color: var(--pink);
+      background: rgba(244, 114, 182, 0.08);
+    }
+
+    @media (max-width: 860px) {
+      .dashboard-grid { grid-template-columns: 1fr; }
+      .product-sidebar { position: static; }
+      .load-options { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="bg-mesh"></div>
+<div class="app">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-badge">⚡ Ad Blueprint Generator</div>
+    <h1>Scraped Data → <span>40 Ad Templates</span></h1>
+    <p>Run the Node.js scraper to get product data, load it here, then generate platform-ready ad copy instantly.</p>
+  </div>
+
+  <!-- Step 1: Load Card -->
+  <div class="load-card" id="loadCard">
+    <h2>📂 How to connect your scraped data</h2>
+    <p>First run the scraper in PowerShell, then load the generated JSON file here.<br/>No internet connection needed — everything runs locally.</p>
+
+    <div class="load-options">
+      <!-- Option A: Load JSON -->
+      <div class="load-option">
+        <div class="load-step">A</div>
+        <h3>📁 Load scraped-products.json</h3>
+        <p>After running the scraper script, click below to load the JSON file it created. Products will appear instantly.</p>
+        <div class="code-block">node run-scraper.js "https://tatcha.com"</div>
+        <button class="btn btn-primary" onclick="document.getElementById('jsonFileInput').click()">
+          📂 Choose scraped-products.json
+        </button>
+        <input type="file" id="jsonFileInput" accept=".json" onchange="loadJsonFile(event)" />
+      </div>
+
+      <!-- Option B: Paste JSON / Manual -->
+      <div class="load-option">
+        <div class="load-step">B</div>
+        <h3>✏️ Enter manually</h3>
+        <p>Don't have the JSON file? Type your brand name and products manually below.</p>
+        <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem;">
+          <input type="text" id="manualBrand" class="meta-input" placeholder="Brand name (e.g. Tatcha)" />
+          <textarea id="manualProducts" class="meta-input" rows="4"
+            placeholder="One product per line:&#10;The Dewy Skin Cream&#10;The Water Cream&#10;The Rice Wash"
+            style="resize: vertical;"></textarea>
+        </div>
+        <button class="btn btn-ghost" onclick="loadManual()">▶ Build from Manual Data</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loaded Banner -->
+  <div class="loaded-banner" id="loadedBanner">
+    <div class="loaded-banner-icon">✅</div>
+    <div class="loaded-banner-text">
+      <h3 id="bannerBrand">Brand Loaded</h3>
+      <p id="bannerMeta">Products loaded · Select one from the left to generate 40 ads</p>
+    </div>
+    <div class="loaded-banner-reload" onclick="resetAll()" title="Start over">✕ Reset</div>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="dashboard" id="dashboard">
+    <div class="dashboard-grid">
+
+      <!-- Left: Product List -->
+      <div class="product-sidebar">
+        <div class="sidebar-title">📦 Products — pick one</div>
+        <div class="product-list" id="productList"></div>
+
+        <div class="meta-fields">
+          <div class="meta-field">
+            <label>Brand Name</label>
+            <input type="text" class="meta-input" id="brandNameInput" placeholder="Brand Name" oninput="regenerate()" />
+          </div>
+          <div class="meta-field">
+            <label>Unique Value Proposition</label>
+            <input type="text" class="meta-input" id="uvpInput" placeholder="What makes you special?" oninput="regenerate()" />
+          </div>
+          <div class="meta-field">
+            <label>CTA (Call to Action)</label>
+            <input type="text" class="meta-input" id="ctaInput" value="Shop Now" oninput="regenerate()" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Ads Panel -->
+      <div class="ads-panel">
+
+        <!-- Selected product banner -->
+        <div class="selected-product-banner" id="spBanner" style="display:none">
+          <div>
+            <div class="spb-label">Generating ads for</div>
+            <div class="spb-name" id="spName">—</div>
+          </div>
+          <div class="spb-count">40 templates</div>
+        </div>
+
+        <!-- Category Tabs + Export -->
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          <div class="category-tabs">
+            <button class="cat-btn active" onclick="filterCategory('all',this)">All (40)</button>
+            <button class="cat-btn" onclick="filterCategory('google',this)">🔍 Google (8)</button>
+            <button class="cat-btn" onclick="filterCategory('facebook',this)">👥 Facebook (8)</button>
+            <button class="cat-btn" onclick="filterCategory('instagram',this)">📸 Instagram (8)</button>
+            <button class="cat-btn" onclick="filterCategory('linkedin',this)">💼 LinkedIn (8)</button>
+            <button class="cat-btn" onclick="filterCategory('email',this)">📧 Email (8)</button>
+          </div>
+          <div class="export-bar">
+            <button class="btn-export btn-export-json" onclick="exportJSON()">⬇ JSON</button>
+            <button class="btn-export btn-export-txt"  onclick="exportTXT()">⬇ TXT</button>
+          </div>
+        </div>
+
+        <!-- Empty state -->
+        <div class="empty-state" id="emptyState">
+          <span class="big">👈</span>
+          Select a product from the list to generate your 40 ad blueprints.
+        </div>
+
+        <!-- Ads Grid -->
+        <div class="ads-grid" id="adsGrid"></div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  'use strict';
+
+  let loadedData = null;
+  let activeProduct = null;
+  let activeCategory = 'all';
+  let generatedAds = [];
+
+  // ── Load JSON file ─────────────────────────────────────
+  function loadJsonFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (!data.products || !Array.isArray(data.products)) throw new Error('Invalid JSON format');
+        initDashboard(data);
+      } catch (err) {
+        alert('❌ Could not read the file: ' + err.message + '\nMake sure you selected the correct scraped-products.json file.');
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function loadManual() {
+    const brand = document.getElementById('manualBrand').value.trim() || 'My Brand';
+    const lines = document.getElementById('manualProducts').value.trim().split('\n').filter(l => l.trim());
+    if (lines.length === 0) return alert('Please enter at least one product name.');
+    const products = lines.map(l => ({ name: l.trim(), price: '$29.99' }));
+    initDashboard({ brand, url: '', scrapedAt: new Date().toISOString(), products });
+  }
+
+  function initDashboard(data) {
+    if (!data.products || data.products.length === 0) {
+      alert('⚠️ The loaded file contains 0 products.\n\nMake sure the target website actually has visible product elements, or use the "Manually Enter Products" option below to generate ads immediately.');
+      return;
+    }
+    loadedData = data;
+
+    // Banner
+    const banner = document.getElementById('loadedBanner');
+    banner.classList.add('visible');
+    document.getElementById('bannerBrand').textContent = data.brand;
+    document.getElementById('bannerMeta').textContent =
+      `${data.products.length} products loaded · ${data.url ? 'Source: ' + data.url : 'Manual entry'} · Click any product to generate 40 ads`;
+
+    // Fill meta fields
+    document.getElementById('brandNameInput').value = data.brand;
+    document.getElementById('uvpInput').value = 'Premium quality you can feel.';
+
+    // Render products
+    renderProductList();
+    document.getElementById('dashboard').classList.add('visible');
+
+    // Auto-select first product
+    selectProduct(0);
+  }
+
+  function renderProductList() {
+    const list = document.getElementById('productList');
+    list.innerHTML = loadedData.products.map((p, i) => `
+      <div class="product-row" id="prod-${i}" onclick="selectProduct(${i})">
+        <span class="prod-idx">[${i}]</span>
+        <span class="prod-name">${p.name}</span>
+        <span class="prod-price">${p.price || ''}</span>
+      </div>
+    `).join('');
+  }
+
+  function selectProduct(idx) {
+    document.querySelectorAll('.product-row').forEach(r => r.classList.remove('active'));
+    const row = document.getElementById(`prod-${idx}`);
+    if (row) { row.classList.add('active'); row.scrollIntoView({ block: 'nearest' }); }
+
+    activeProduct = loadedData.products[idx];
+    document.getElementById('spBanner').style.display = 'flex';
+    document.getElementById('spName').textContent = activeProduct.name;
+    document.getElementById('emptyState').style.display = 'none';
+
+    generateAds();
+  }
+
+  function regenerate() {
+    if (activeProduct) generateAds();
+  }
+
+  // ── Generate 40 Ads ────────────────────────────────────
+  function generateAds() {
+    const prod  = activeProduct.name;
+    const price = activeProduct.price || '$29.99';
+    const brand = document.getElementById('brandNameInput').value.trim() || loadedData.brand;
+    const uvp   = document.getElementById('uvpInput').value.trim() || 'Premium quality you can feel.';
+    const cta   = document.getElementById('ctaInput').value.trim() || 'Shop Now';
+
+    generatedAds = [];
+
+    // ── Google Search (8) ──
+    const gVariants = [
+      { h2: 'Fast & Free Delivery', desc: `Find exactly what you need. ${uvp}` },
+      { h2: `Only ${price} — Limited Stock`, desc: `Don't miss out. ${brand} delivers fast.` },
+      { h2: 'Award-Winning Quality', desc: `Join thousands who love ${prod} by ${brand}.` },
+      { h2: 'Exclusive Online Offer', desc: `${uvp} Order ${prod} directly from ${brand}.` },
+      { h2: 'Official Store — Best Price', desc: `Authentic ${prod}. Direct from ${brand}.` },
+      { h2: 'Try It Risk-Free', desc: `${prod} from ${brand}. ${uvp}` },
+      { h2: 'New Arrival Now In Stock', desc: `Shop ${prod} from ${brand} today. ${cta}!` },
+      { h2: `Shop ${brand} Today`, desc: `Get the original ${prod}. Direct & authentic.` },
+    ];
+    gVariants.forEach((v, i) => {
+      generatedAds.push({
+        platform: 'google', label: 'Google Search',
+        title: `Google Ad #${i+1} — Search Campaign`,
+        body: `📌 Headline 1: Buy ${prod.slice(0,25)}\n📌 Headline 2: ${v.h2}\n📌 Headline 3: Official ${brand.slice(0,15)} Shop\n\n📝 Description: ${v.desc}`
+      });
+    });
+
+    // ── Facebook Feed (8) ──
+    const fbHooks = [
+      `Stop scrolling 🚨 — if you care about quality, you need to know about ${prod}.`,
+      `It's officially back in stock! ✅ Grab the fan-favourite ${prod} before it's gone.`,
+      `No gatekeeping here 🤫 — here's what actually works: ${prod} by ${brand}.`,
+      `Your routine is missing one thing. Let us introduce you to ${prod}.`,
+      `POV: You finally tried ${prod} and your skin (or life) changed.`,
+      `We get it — you're selective. That's why we made ${prod} just for you.`,
+      `The internet has been obsessing over ${prod}. Here's why — and where to get it.`,
+      `Real talk: you deserve the best. ${prod} from ${brand} delivers exactly that.`,
+    ];
+    fbHooks.forEach((hook, i) => {
+      generatedAds.push({
+        platform: 'facebook', label: 'Facebook Feed',
+        title: `Facebook Ad #${i+1} — Feed / Story Copy`,
+        body: `${hook}\n\n✨ ${uvp}\n💰 Now just ${price} at ${brand}.\n\n👇 Tap "${cta}" below to shop.`
+      });
+    });
+
+    // ── Instagram (8) ──
+    const igAngles = [
+      `Obsessed with this aesthetic ✨`,
+      `POV: your new holy grail just arrived`,
+      `Not sponsored, just genuinely love this`,
+      `The glow-up starts here 🌿`,
+      `Adding to cart immediately 🛒`,
+      `My honest review after 30 days of ${prod}`,
+      `The only one I actually repurchase`,
+      `This is what quality looks like ✨`,
+    ];
+    const igHashtags = `#musthave #aesthetic #${brand.toLowerCase().replace(/[^a-z0-9]/g,'')} #quality #trending`;
+    igAngles.forEach((angle, i) => {
+      generatedAds.push({
+        platform: 'instagram', label: 'Instagram Post/Reel',
+        title: `Instagram Ad #${i+1} — Post & Reel Caption`,
+        body: `${angle}\n\n${prod} by ${brand} 🙌\n\n${uvp}\n\nShop via link in bio — ${price}\n\n${igHashtags}`
+      });
+    });
+
+    // ── LinkedIn (8) ──
+    const liAngles = [
+      `I tested ${prod} for 30 days. Here's what I learned about quality sourcing.`,
+      `Why discerning professionals are choosing ${brand}'s ${prod} for their daily ritual.`,
+      `The hidden ROI of investing in premium: a case for ${prod}.`,
+      `3 reasons the ${prod} by ${brand} has become an industry standard reference.`,
+      `Scaling a business is hard. Your tools shouldn't be. Meet ${prod}.`,
+      `What separates good from great? Attention to every detail. ${brand} proves it with ${prod}.`,
+      `A quick note on why we built our culture around quality products like ${prod}.`,
+      `Less noise, more results. ${brand}'s ${prod} is the professional's choice.`,
+    ];
+    liAngles.forEach((angle, i) => {
+      generatedAds.push({
+        platform: 'linkedin', label: 'LinkedIn Professional',
+        title: `LinkedIn Ad #${i+1} — Professional Post`,
+        body: `💼 ${angle}\n\n${uvp}\n\nExplore ${prod} at ${brand} → ${price}\n\n#${brand.replace(/\s+/g,'')} #Quality #Professional`
+      });
+    });
+
+    // ── Email (8) ──
+    const emailSubjects = [
+      `You asked, we listened — introducing ${prod}`,
+      `Your exclusive invite: discover ${prod}`,
+      `Quick question about your ${prod} experience...`,
+      `Don't miss this: ${prod} for just ${price}`,
+      `We think you'll love this 💌`,
+      `Honest reviews are in for ${prod}`,
+      `⏰ Last chance: ${prod} at ${price}`,
+      `The story behind ${prod} — and why it matters`,
+    ];
+    emailSubjects.forEach((subj, i) => {
+      generatedAds.push({
+        platform: 'email', label: 'Email Campaign',
+        title: `Email #${i+1} — Sequence Copy`,
+        body: `📧 Subject: ${subj}\n\nHi there,\n\nWe wanted to personally share something special with you — ${prod}.\n\n${uvp}\n\nRight now it's available for just ${price} at ${brand}. We'd love for you to experience the difference.\n\n→ ${cta}: [link]\n\nWith warmth,\nThe ${brand} Team`
+      });
+    });
+
+    renderAdsGrid();
+  }
+
+  // ── Render Grid ────────────────────────────────────────
+  function renderAdsGrid() {
+    const grid = document.getElementById('adsGrid');
+    const filtered = activeCategory === 'all'
+      ? generatedAds
+      : generatedAds.filter(a => a.platform === activeCategory);
+
+    grid.innerHTML = filtered.map((ad, i) => `
+      <div class="ad-card">
+        <div class="ad-badge badge-${ad.platform}">${ad.label}</div>
+        <div class="ad-title">${ad.title}</div>
+        <div class="ad-image-container" id="adimgcontainer-${ad.platform}-${i}" style="display:none;">
+          <img src="" id="adimg-${ad.platform}-${i}" alt="AI generated concept" />
+          <div class="img-loading" id="adimgloading-${ad.platform}-${i}">Generating AI Concept...</div>
+        </div>
+        <div class="ad-body" id="adbody-${ad.platform}-${i}">${ad.body}</div>
+        <div class="ad-actions">
+          <button class="btn-copy" id="copybtn-${ad.platform}-${i}" onclick="copyAd('${ad.platform}',${i})">📋 Copy</button>
+          <button class="btn-copy btn-gen-img" id="genimgbtn-${ad.platform}-${i}" onclick="generateAdImage('${ad.platform}',${i})">🎨 Image</button>
+          <button class="btn-copy btn-share" onclick="shareSocial('${ad.platform}',${i})">🔗 Share</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function generateAdImage(platform, idx) {
+    const container = document.getElementById(`adimgcontainer-${platform}-${idx}`);
+    const img = document.getElementById(`adimg-${platform}-${idx}`);
+    const loading = document.getElementById(`adimgloading-${platform}-${idx}`);
+    const btn = document.getElementById(`genimgbtn-${platform}-${idx}`);
+
+    container.style.display = 'block';
+    loading.style.display = 'flex';
+    btn.disabled = true;
+    btn.textContent = '⏳ ...';
+
+    const brand = document.getElementById('brandNameInput').value.trim() || loadedData.brand;
+    const prod = activeProduct.name;
+    const uvp = document.getElementById('uvpInput').value.trim() || 'Premium quality you can feel.';
+
+    // Construct a context-aware image generation prompt
+    const promptText = `A premium professional high-end commercial ad image for ${brand} ${prod}, representing: ${uvp}. Elegant minimalist layout, studio lighting, advertising style, 4k.`;
+    const encodedPrompt = encodeURIComponent(promptText);
+
+    // Pollinations.ai free API creates images on-the-fly dynamically
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=800&height=600&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
+
+    img.onload = () => {
+      loading.style.display = 'none';
+      btn.disabled = false;
+      btn.textContent = '🎨 Regene';
+    };
+
+    img.onerror = () => {
+      loading.style.display = 'none';
+      btn.disabled = false;
+      btn.textContent = '❌ Fail';
+      alert('Could not generate the AI image. Please check your internet connection and try again.');
+    };
+
+    img.src = imageUrl;
+  }
+
+  function shareSocial(platform, idx) {
+    const textEl = document.getElementById(`adbody-${platform}-${idx}`);
+    if (!textEl) return;
+    const text = textEl.textContent;
+    const imgEl = document.getElementById(`adimg-${platform}-${idx}`);
+    const imageUrl = imgEl && imgEl.src ? imgEl.src : '';
+
+    if (navigator.share) {
+      navigator.share({
+        title: `${platform.toUpperCase()} Ad Creative - ${activeProduct?.name || 'Product'}`,
+        text: text,
+        url: imageUrl || undefined
+      }).catch(err => console.log('Social sharing canceled or failed', err));
+    } else {
+      // Fallback
+      navigator.clipboard.writeText(text).then(() => {
+        alert('📋 Ad copy copied to clipboard!\n\nYou can now paste it directly into your client\'s social media post.\n' + (imageUrl ? '\nGenerated Image Link:\n' + imageUrl : ''));
+      });
+    }
+  }
+
+  function filterCategory(cat, btn) {
+    activeCategory = cat;
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (activeProduct) renderAdsGrid();
+  }
+
+  function copyAd(platform, i) {
+    const el = document.getElementById(`adbody-${platform}-${i}`);
+    const btn = document.getElementById(`copybtn-${platform}-${i}`);
+    if (!el) return;
+    navigator.clipboard.writeText(el.textContent).then(() => {
+      btn.textContent = '✓ Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = '📋 Copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+
+  // ── Export ─────────────────────────────────────────────
+  function exportJSON() {
+    const out = {
+      brand: document.getElementById('brandNameInput').value,
+      product: activeProduct?.name,
+      generatedAt: new Date().toISOString(),
+      ads: generatedAds
+    };
+    download(JSON.stringify(out, null, 2), `${safeFilename()}-ads.json`, 'application/json');
+  }
+
+  function exportTXT() {
+    let out = `${'='.repeat(50)}\nAD BLUEPRINTS: ${activeProduct?.name}\nBrand: ${document.getElementById('brandNameInput').value}\n${'='.repeat(50)}\n\n`;
+    generatedAds.forEach(ad => {
+      out += `${'─'.repeat(40)}\n[${ad.label.toUpperCase()}] ${ad.title}\n${'─'.repeat(40)}\n${ad.body}\n\n`;
+    });
+    download(out, `${safeFilename()}-ads.txt`, 'text/plain');
+  }
+
+  function safeFilename() {
+    return (activeProduct?.name || 'ads').toLowerCase().replace(/[^a-z0-9]/g, '-').slice(0, 30);
+  }
+
+  function download(content, filename, type) {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function resetAll() {
+    loadedData = null; activeProduct = null; generatedAds = [];
+    document.getElementById('loadedBanner').classList.remove('visible');
+    document.getElementById('dashboard').classList.remove('visible');
+    document.getElementById('jsonFileInput').value = '';
+    document.getElementById('adsGrid').innerHTML = '';
+    document.getElementById('emptyState').style.display = 'block';
+    document.getElementById('spBanner').style.display = 'none';
+  }
+</script>
+</body>
+</html>

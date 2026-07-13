@@ -1,0 +1,5 @@
+{
+  "summary": "Updated Node.js scraper script with automatic fallback paths for complex websites. If the homepage yields 0 products, the scraper scans shop category pages (like /collections/best-sellers or /shop) to find and extract products.",
+  "updatedAt": "2026-07-09T23:12:46.311794400Z",
+  "userFacing": true
+}

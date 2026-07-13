@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Web Scraper — Extract Home, Products & About Pages</title>
+  <meta name="description" content="Scrape homepage, products, and about us pages from any website. Extract text, headings, links and product info." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset & Variables ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #060914;
+      --surface:  #0c0f21;
+      --surface2: #131729;
+      --glass:    rgba(255,255,255,0.04);
+      --glass2:   rgba(255,255,255,0.07);
+      --border:   rgba(255,255,255,0.08);
+      --border2:  rgba(255,255,255,0.14);
+      --text:     #eef0ff;
+      --dim:      #8b8fb5;
+      --mute:     #3d4166;
+      --cyan:     #22d3ee;
+      --purple:   #a78bfa;
+      --pink:     #f472b6;
+      --green:    #34d399;
+      --yellow:   #fbbf24;
+      --red:      #f87171;
+      --radius:   14px;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Background ── */
+    .bg-mesh {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 60% 50% at 20% 10%, rgba(34,211,238,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 80% 80%, rgba(167,139,250,0.1) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 40% at 50% 50%, rgba(244,114,182,0.05) 0%, transparent 60%);
+    }
+
+    /* ── App Layout ── */
+    .app { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+    /* ── Header ── */
+    .header {
+      text-align: center;
+      padding: 3rem 0 2.5rem;
+      margin-bottom: 2rem;
+    }
+    .header-badge {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: rgba(34,211,238,0.1); border: 1px solid rgba(34,211,238,0.25);
+      border-radius: 99px; padding: 5px 14px; font-size: 0.75rem;
+      font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--cyan); margin-bottom: 1.25rem;
+    }
+    .header h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 800; letter-spacing: -0.03em; line-height: 1.1;
+      margin-bottom: 0.75rem;
+    }
+    .header h1 span {
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      -webkit-background-clip: text; background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .header p { font-size: 1rem; color: var(--dim); max-width: 520px; margin: 0 auto; }
+
+    /* ── URL Input Card ── */
+    .input-card {
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 20px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+    .input-label {
+      font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--dim); margin-bottom: 0.75rem;
+    }
+    .input-row {
+      display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;
+    }
+    .url-input {
+      flex: 1; min-width: 280px;
+      background: var(--glass2);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 0.85rem 1.1rem;
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      outline: none;
+      transition: all 0.25s;
+    }
+    .url-input:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(34,211,238,0.12); }
+    .url-input::placeholder { color: var(--mute); }
+
+    .btn-scrape {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      border: none; border-radius: 10px;
+      padding: 0.85rem 1.75rem;
+      font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 700;
+      color: #060914; cursor: pointer;
+      transition: all 0.25s; white-space: nowrap;
+      box-shadow: 0 4px 20px rgba(34,211,238,0.3);
+    }
+    .btn-scrape:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(34,211,238,0.45); }
+    .btn-scrape:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-scrape .spin { display: none; animation: spin 0.8s linear infinite; }
+    .btn-scrape.loading .spin { display: inline; }
+    .btn-scrape.loading .idle-icon { display: none; }
+
+    /* Target pages config */
+    .targets-row {
+      display: flex; gap: 1rem; margin-top: 1.25rem; flex-wrap: wrap;
+    }
+    .target-chip {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 6px 14px; border-radius: 99px;
+      border: 1.5px solid var(--border2);
+      background: var(--glass); font-size: 0.82rem; font-weight: 600;
+      color: var(--dim); cursor: pointer; user-select: none; transition: all 0.2s;
+    }
+    .target-chip input[type="checkbox"] { display: none; }
+    .target-chip.on { border-color: var(--cyan); color: var(--cyan); background: rgba(34,211,238,0.08); }
+    .target-chip .chip-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--mute); transition: background 0.2s;
+    }
+    .target-chip.on .chip-dot { background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
+
+    /* Custom path inputs */
+    .custom-paths { margin-top: 1rem; display: none; }
+    .custom-paths.visible { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 0.75rem; }
+    .path-field { display: flex; flex-direction: column; gap: 0.35rem; }
+    .path-label { font-size: 0.72rem; font-weight: 600; color: var(--dim); text-transform: uppercase; letter-spacing: 0.06em; }
+    .path-input {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.5rem 0.75rem;
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem; outline: none;
+      transition: border-color 0.2s;
+    }
+    .path-input:focus { border-color: var(--purple); }
+
+    /* ── Status Log ── */
+    .status-log {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      margin-bottom: 2rem;
+      display: none;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+    }
+    .status-log.visible { display: block; }
+    .log-header { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); margin-bottom: 0.75rem; }
+    .log-line { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.4rem; }
+    .log-icon { font-size: 0.9rem; flex-shrink: 0; }
+    .log-text { color: var(--dim); }
+    .log-text.ok { color: var(--green); }
+    .log-text.err { color: var(--red); }
+    .log-text.working { color: var(--yellow); }
+    .log-text.info { color: var(--cyan); }
+
+    /* ── Results Grid ── */
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .result-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      display: none;
+      animation: cardIn 0.5s cubic-bezier(0.4,0,0.2,1);
+    }
+    .result-card.visible { display: block; }
+    @keyframes cardIn { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+
+    .card-header {
+      padding: 1.1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+    .card-icon {
+      width: 36px; height: 36px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; flex-shrink: 0;
+    }
+    .icon-home    { background: rgba(34,211,238,0.12); }
+    .icon-product { background: rgba(167,139,250,0.12); }
+    .icon-about   { background: rgba(244,114,182,0.12); }
+
+    .card-title { font-size: 0.95rem; font-weight: 700; }
+    .card-url { font-size: 0.72rem; color: var(--dim); font-family: 'JetBrains Mono', monospace; word-break: break-all; }
+    .card-status {
+      margin-left: auto; font-size: 0.7rem; font-weight: 700;
+      padding: 3px 10px; border-radius: 99px; flex-shrink: 0;
+    }
+    .status-ok  { background: rgba(52,211,153,0.12); color: var(--green); border: 1px solid rgba(52,211,153,0.3); }
+    .status-err { background: rgba(248,113,113,0.12); color: var(--red);   border: 1px solid rgba(248,113,113,0.3); }
+    .status-loading { background: rgba(251,191,36,0.12); color: var(--yellow); border: 1px solid rgba(251,191,36,0.3); }
+
+    /* Tabs */
+    .card-tabs {
+      display: flex; border-bottom: 1px solid var(--border);
+      overflow-x: auto; scrollbar-width: none;
+    }
+    .card-tabs::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      padding: 0.6rem 1rem; font-size: 0.78rem; font-weight: 600;
+      color: var(--dim); border: none; background: none; cursor: pointer;
+      border-bottom: 2px solid transparent; transition: all 0.2s;
+      white-space: nowrap; font-family: 'Outfit', sans-serif;
+    }
+    .tab-btn.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+    .tab-btn:hover:not(.active) { color: var(--text); }
+
+    /* Tab Content */
+    .card-content { padding: 1.1rem 1.25rem; max-height: 380px; overflow-y: auto; }
+    .card-content::-webkit-scrollbar { width: 4px; }
+    .card-content::-webkit-scrollbar-track { background: transparent; }
+    .card-content::-webkit-scrollbar-thumb { background: var(--mute); border-radius: 99px; }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Data items */
+    .data-section { margin-bottom: 1.25rem; }
+    .data-section-label {
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--purple); margin-bottom: 0.5rem;
+    }
+    .data-item {
+      padding: 0.5rem 0.75rem; background: var(--glass2);
+      border-radius: 8px; font-size: 0.82rem; color: var(--text);
+      margin-bottom: 0.4rem; line-height: 1.5;
+      border-left: 2px solid var(--mute);
+    }
+    .data-item.heading { border-left-color: var(--cyan); font-weight: 600; }
+    .data-item.link { border-left-color: var(--purple); font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; word-break: break-all; }
+    .data-item.link a { color: var(--purple); text-decoration: none; }
+    .data-item.link a:hover { text-decoration: underline; }
+    .data-item.product { border-left-color: var(--pink); }
+    .data-item.price { border-left-color: var(--green); font-weight: 700; color: var(--green); font-family: 'JetBrains Mono', monospace; }
+    .data-item.meta { border-left-color: var(--yellow); font-size: 0.78rem; color: var(--yellow); }
+    .data-item.body-text { border-left-color: var(--mute); font-size: 0.8rem; color: var(--dim); }
+    .data-count { font-size: 0.75rem; color: var(--dim); margin-bottom: 0.5rem; }
+    .no-data { text-align: center; padding: 2rem; color: var(--mute); font-size: 0.85rem; }
+
+    /* Raw HTML panel */
+    .raw-html {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--dim);
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    /* ── Export Bar ── */
+    .export-bar {
+      display: none; justify-content: center; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;
+    }
+    .export-bar.visible { display: flex; }
+    .btn-export {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      border-radius: 99px; padding: 0.65rem 1.4rem;
+      font-family: 'Outfit', sans-serif; font-size: 0.875rem; font-weight: 600;
+      cursor: pointer; border: 1.5px solid; transition: all 0.25s;
+    }
+    .btn-json  { border-color: var(--cyan); color: var(--cyan); background: rgba(34,211,238,0.06); }
+    .btn-json:hover  { background: rgba(34,211,238,0.14); transform: translateY(-1px); }
+    .btn-txt   { border-color: var(--purple); color: var(--purple); background: rgba(167,139,250,0.06); }
+    .btn-txt:hover   { background: rgba(167,139,250,0.14); transform: translateY(-1px); }
+    .btn-clear { border-color: var(--mute); color: var(--dim); background: transparent; }
+    .btn-clear:hover { border-color: var(--red); color: var(--red); }
+
+    /* ── Footer ── */
+    .footer {
+      text-align: center; font-size: 0.78rem; color: var(--mute);
+      padding-top: 2rem; border-top: 1px solid var(--border);
+    }
+    .proxy-note {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      background: rgba(251,191,36,0.06); border: 1px solid rgba(251,191,36,0.2);
+      border-radius: 8px; padding: 0.6rem 1rem;
+      font-size: 0.8rem; color: var(--yellow); margin-bottom: 1.5rem;
+    }
+
+    /* ── Animations ── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .pulse { animation: pulse 1.5s ease-in-out infinite; }
+
+    @media (max-width: 600px) {
+      .results-grid { grid-template-columns: 1fr; }
+      .input-row { flex-direction: column; }
+      .url-input, .btn-scrape { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-mesh"></div>
+  <div class="app">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-badge">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <circle cx="6" cy="6" r="5" stroke="#22d3ee" stroke-width="1.5"/>
+          <path d="M4 6h4M6 4v4" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        Web Scraper Tool
+      </div>
+      <h1>Scrape Any Website<br/><span>in 3 Clicks</span></h1>
+      <p>Enter a URL and we'll fetch data from the Home, Products, and About Us pages automatically.</p>
+    </div>
+
+    <!-- CORS Note -->
+    <div class="proxy-note">
+      ⚠️ Uses a public CORS proxy (allorigins.win) to bypass browser restrictions. Some sites may block scraping.
+    </div>
+
+    <!-- Input Card -->
+    <div class="input-card">
+      <div class="input-label">🌐 Website URL</div>
+      <div class="input-row">
+        <input
+          type="url"
+          id="urlInput"
+          class="url-input"
+          placeholder="https://example.com"
+          value=""
+        />
+        <button class="btn-scrape" id="scrapeBtn" onclick="startScrape()">
+          <span class="idle-icon">⚡ Start Scraping</span>
+          <span class="spin">↻</span>
+          <span class="loading-text" style="display:none">Scraping…</span>
+        </button>
+      </div>
+
+      <!-- Target Selection -->
+      <div class="targets-row">
+        <label class="target-chip on" id="chip-home">
+          <input type="checkbox" id="chk-home" checked onchange="toggleChip('home')"/>
+          <div class="chip-dot"></div>
+          🏠 Home Page
+        </label>
+        <label class="target-chip on" id="chip-products">
+          <input type="checkbox" id="chk-products" checked onchange="toggleChip('products')"/>
+          <div class="chip-dot"></div>
+          📦 Products Page
+        </label>
+        <label class="target-chip on" id="chip-about">
+          <input type="checkbox" id="chk-about" checked onchange="toggleChip('about')"/>
+          <div class="chip-dot"></div>
+          ℹ️ About Us Page
+        </label>
+        <label class="target-chip" id="chip-custom" onclick="toggleCustomPaths()">
+          <div class="chip-dot" id="dot-custom"></div>
+          ✏️ Custom Paths
+        </label>
+      </div>
+
+      <!-- Custom path overrides -->
+      <div class="custom-paths" id="customPathsPanel">
+        <div class="path-field">
+          <div class="path-label">🏠 Home path</div>
+          <input type="text" class="path-input" id="pathHome" value="/" placeholder="/" />
+        </div>
+        <div class="path-field">
+          <div class="path-label">📦 Products path</div>
+          <input type="text" class="path-input" id="pathProducts" value="/products" placeholder="/products" />
+        </div>
+        <div class="path-field">
+          <div class="path-label">ℹ️ About path</div>
+          <input type="text" class="path-input" id="pathAbout" value="/about" placeholder="/about" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Log -->
+    <div class="status-log" id="statusLog">
+      <div class="log-header">📡 Scraping Log</div>
+      <div id="logLines"></div>
+    </div>
+
+    <!-- Results Grid -->
+    <div class="results-grid" id="resultsGrid">
+      <div class="result-card" id="card-home">
+        <div class="card-header">
+          <div class="card-icon icon-home">🏠</div>
+          <div>
+            <div class="card-title">Home Page</div>
+            <div class="card-url" id="url-home">—</div>
+          </div>
+          <div class="card-status status-loading" id="status-home">Loading</div>
+        </div>
+        <div class="card-tabs">
+          <button class="tab-btn active" onclick="switchTab('home','overview')">Overview</button>
+          <button class="tab-btn" onclick="switchTab('home','headings')">Headings</button>
+          <button class="tab-btn" onclick="switchTab('home','links')">Links</button>
+          <button class="tab-btn" onclick="switchTab('home','meta')">Meta</button>
+          <button class="tab-btn" onclick="switchTab('home','raw')">Raw</button>
+        </div>
+        <div class="card-content">
+          <div class="tab-panel active" id="home-overview"></div>
+          <div class="tab-panel" id="home-headings"></div>
+          <div class="tab-panel" id="home-links"></div>
+          <div class="tab-panel" id="home-meta"></div>
+          <div class="tab-panel" id="home-raw"></div>
+        </div>
+      </div>
+
+      <div class="result-card" id="card-products">
+        <div class="card-header">
+          <div class="card-icon icon-product">📦</div>
+          <div>
+            <div class="card-title">Products Page</div>
+            <div class="card-url" id="url-products">—</div>
+          </div>
+          <div class="card-status status-loading" id="status-products">Loading</div>
+        </div>
+        <div class="card-tabs">
+          <button class="tab-btn active" onclick="switchTab('products','overview')">Overview</button>
+          <button class="tab-btn" onclick="switchTab('products','products')">Products</button>
+          <button class="tab-btn" onclick="switchTab('products','headings')">Headings</button>
+          <button class="tab-btn" onclick="switchTab('products','links')">Links</button>
+          <button class="tab-btn" onclick="switchTab('products','raw')">Raw</button>
+        </div>
+        <div class="card-content">
+          <div class="tab-panel active" id="products-overview"></div>
+          <div class="tab-panel" id="products-products"></div>
+          <div class="tab-panel" id="products-headings"></div>
+          <div class="tab-panel" id="products-links"></div>
+          <div class="tab-panel" id="products-raw"></div>
+        </div>
+      </div>
+
+      <div class="result-card" id="card-about">
+        <div class="card-header">
+          <div class="card-icon icon-about">ℹ️</div>
+          <div>
+            <div class="card-title">About Us Page</div>
+            <div class="card-url" id="url-about">—</div>
+          </div>
+          <div class="card-status status-loading" id="status-about">Loading</div>
+        </div>
+        <div class="card-tabs">
+          <button class="tab-btn active" onclick="switchTab('about','overview')">Overview</button>
+          <button class="tab-btn" onclick="switchTab('about','headings')">Headings</button>
+          <button class="tab-btn" onclick="switchTab('about','links')">Links</button>
+          <button class="tab-btn" onclick="switchTab('about','meta')">Meta</button>
+          <button class="tab-btn" onclick="switchTab('about','raw')">Raw</button>
+        </div>
+        <div class="card-content">
+          <div class="tab-panel active" id="about-overview"></div>
+          <div class="tab-panel" id="about-headings"></div>
+          <div class="tab-panel" id="about-links"></div>
+          <div class="tab-panel" id="about-meta"></div>
+          <div class="tab-panel" id="about-raw"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Export Bar -->
+    <div class="export-bar" id="exportBar">
+      <button class="btn-export btn-json" onclick="exportJSON()">⬇ Export JSON</button>
+      <button class="btn-export btn-txt"  onclick="exportText()">⬇ Export Text</button>
+      <button class="btn-export btn-clear" onclick="clearAll()">✕ Clear Results</button>
+    </div>
+
+    <div class="footer">
+      Web Scraper Tool · Built with vanilla JS · Data stays in your browser
+    </div>
+  </div>
+
+  <script>
+    'use strict';
+
+    // ── CORS Proxies (fallback chain) ─────────────────────
+    const PROXIES = [
+      url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+      url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+      url => `https://thingproxy.freeboard.io/fetch/${url}`,
+      url => `https://cors-anywhere.herokuapp.com/${url}`
+    ];
+
+    // ── State ─────────────────────────────────────────────
+    let scrapedData = {};
+    let showCustomPaths = false;
+
+    // ── UI Helpers ────────────────────────────────────────
+    function toggleChip(name) {
+      const chip = document.getElementById(`chip-${name}`);
+      const chk  = document.getElementById(`chk-${name}`);
+      chip.classList.toggle('on', chk.checked);
+    }
+
+    function toggleCustomPaths() {
+      showCustomPaths = !showCustomPaths;
+      const panel = document.getElementById('customPathsPanel');
+      const chip  = document.getElementById('chip-custom');
+      const dot   = document.getElementById('dot-custom');
+      panel.classList.toggle('visible', showCustomPaths);
+      chip.classList.toggle('on', showCustomPaths);
+      dot.style.background = showCustomPaths ? 'var(--cyan)' : '';
+      dot.style.boxShadow  = showCustomPaths ? '0 0 6px var(--cyan)' : '';
+    }
+
+    function log(icon, msg, cls = '') {
+      const log = document.getElementById('statusLog');
+      const lines = document.getElementById('logLines');
+      log.classList.add('visible');
+      const ts = new Date().toLocaleTimeString();
+      const line = document.createElement('div');
+      line.className = 'log-line';
+      line.innerHTML = `<span class="log-icon">${icon}</span><span class="log-text ${cls}">[${ts}] ${msg}</span>`;
+      lines.appendChild(line);
+      lines.scrollTop = lines.scrollHeight;
+    }
+
+    function clearLog() {
+      document.getElementById('logLines').innerHTML = '';
+      document.getElementById('statusLog').classList.remove('visible');
+    }
+
+    function setCardStatus(page, status) {
+      const el = document.getElementById(`status-${page}`);
+      el.className = `card-status status-${status}`;
+      el.textContent = status === 'ok' ? '✓ Done' : status === 'err' ? '✕ Failed' : 'Loading…';
+    }
+
+    function switchTab(page, tab) {
+      const card = document.getElementById(`card-${page}`);
+      card.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      card.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      const activeBtn = card.querySelector(`.tab-btn[onclick="switchTab('${page}','${tab}')"]`);
+      const activePanel = document.getElementById(`${page}-${tab}`);
+      if (activeBtn)  activeBtn.classList.add('active');
+      if (activePanel) activePanel.classList.add('active');
+    }
+
+    // ── Fetch via proxy with fallback ─────────────────────
+    async function fetchViaProxy(url) {
+      for (let i = 0; i < PROXIES.length; i++) {
+        const proxyUrl = PROXIES[i](url);
+        try {
+          log('🔄', `Trying proxy ${i+1}/3 for: ${url.slice(0,60)}…`, 'working');
+          const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(15000) });
+          if (!res.ok) continue;
+          const data = await res.json().catch(async () => {
+            // Some proxies return raw HTML
+            const text = await res.text();
+            return { contents: text };
+          });
+          const html = data.contents || data;
+          if (typeof html === 'string' && html.trim().length > 50) {
+            log('✅', `Proxy ${i+1} succeeded`, 'ok');
+            return html;
+          }
+        } catch (e) {
+          log('⚠️', `Proxy ${i+1} failed: ${e.message}`, 'err');
+        }
+      }
+      throw new Error('All proxies failed. The site may be blocking scrapers.');
+    }
+
+    // ── Parse HTML ────────────────────────────────────────
+    function parseHTML(htmlStr, baseUrl, pageType) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlStr, 'text/html');
+
+      // Helper: clean text
+      const clean = str => str?.replace(/\s+/g, ' ').trim() || '';
+
+      // Meta info
+      const meta = {
+        title:       clean(doc.title),
+        description: doc.querySelector('meta[name="description"]')?.content || '',
+        keywords:    doc.querySelector('meta[name="keywords"]')?.content || '',
+        ogTitle:     doc.querySelector('meta[property="og:title"]')?.content || '',
+        ogDesc:      doc.querySelector('meta[property="og:description"]')?.content || '',
+        ogImage:     doc.querySelector('meta[property="og:image"]')?.content || '',
+        canonical:   doc.querySelector('link[rel="canonical"]')?.href || '',
+        charset:     doc.querySelector('meta[charset]')?.getAttribute('charset') || '',
+      };
+
+      // Headings
+      const headings = [];
+      doc.querySelectorAll('h1,h2,h3,h4').forEach(h => {
+        const t = clean(h.textContent);
+        if (t && t.length > 1) headings.push({ tag: h.tagName, text: t });
+      });
+
+      // Body text (paragraphs)
+      const paragraphs = [];
+      doc.querySelectorAll('p, article p, main p').forEach(p => {
+        const t = clean(p.textContent);
+        if (t && t.length > 30) paragraphs.push(t.slice(0, 300));
+      });
+
+      // Links
+      const links = [];
+      const seenLinks = new Set();
+      doc.querySelectorAll('a[href]').forEach(a => {
+        const href = a.href;
+        const text = clean(a.textContent);
+        if (!href || href.startsWith('javascript') || href.startsWith('#') || seenLinks.has(href)) return;
+        seenLinks.add(href);
+        if (text && text.length > 1 && text.length < 100) {
+          links.push({ text, href });
+        }
+      });
+
+      // Images
+      const images = [];
+      doc.querySelectorAll('img[src]').forEach(img => {
+        const src = img.src;
+        const alt = img.alt || '';
+        if (src && !src.startsWith('data:')) images.push({ src, alt });
+      });
+
+      // Products (for products page)
+      const products = [];
+      const productSelectors = [
+        '.product', '[class*="product"]', '[class*="item"]',
+        '[data-product]', '.card', 'article', '.woocommerce-product-gallery',
+        'li.product', '.product-item', '.shop-product', '[itemtype*="Product"]',
+      ];
+      const pricePatterns = /(\$|€|£|USD|EUR|GBP|PKR|₨)[\d,]+(\.\d{2})?|[\d,]+\s*(USD|EUR|GBP|PKR)/g;
+      const seenProducts = new Set();
+
+      if (pageType === 'products') {
+        productSelectors.forEach(sel => {
+          doc.querySelectorAll(sel).forEach(el => {
+            const name = clean(el.querySelector('h1,h2,h3,h4,h5,[class*="title"],[class*="name"]')?.textContent || '');
+            const priceEl = el.querySelector('[class*="price"],[data-price],[itemprop="price"]');
+            const price = clean(priceEl?.textContent || '');
+            const desc = clean(el.querySelector('p,[class*="desc"]')?.textContent || '').slice(0, 200);
+            const img = el.querySelector('img')?.src || '';
+            const link = el.querySelector('a')?.href || '';
+            if (name && name.length > 1 && !seenProducts.has(name)) {
+              seenProducts.add(name);
+              products.push({ name, price, desc, img, link });
+            }
+          });
+        });
+
+        // Also scan for price patterns in the page
+        if (products.length === 0) {
+          const bodyText = clean(doc.body?.textContent || '');
+          const priceMatches = bodyText.match(pricePatterns) || [];
+          priceMatches.slice(0, 20).forEach(p => {
+            products.push({ name: '(Price found)', price: p, desc: '', img: '', link: '' });
+          });
+        }
+      }
+
+      // Word count
+      const wordCount = clean(doc.body?.textContent || '').split(/\s+/).filter(Boolean).length;
+
+      // Raw HTML snippet
+      const rawSnippet = htmlStr.slice(0, 3000);
+
+      return { meta, headings, paragraphs, links, images, products, wordCount, rawSnippet };
+    }
+
+    // ── Render card content ───────────────────────────────
+    function renderCard(page, pageType, url, data) {
+      // Overview
+      const ov = document.getElementById(`${page}-overview`);
+      ov.innerHTML = `
+        <div class="data-section">
+          <div class="data-section-label">Page Title</div>
+          <div class="data-item heading">${data.meta.title || '—'}</div>
+        </div>
+        <div class="data-section">
+          <div class="data-section-label">Description</div>
+          <div class="data-item">${data.meta.description || data.meta.ogDesc || '—'}</div>
+        </div>
+        ${data.meta.keywords ? `
+        <div class="data-section">
+          <div class="data-section-label">Keywords</div>
+          <div class="data-item">${data.meta.keywords}</div>
+        </div>` : ''}
+        <div class="data-section">
+          <div class="data-section-label">Stats</div>
+          <div class="data-item">📝 ~${data.wordCount.toLocaleString()} words on page</div>
+          <div class="data-item">🔗 ${data.links.length} links found</div>
+          <div class="data-item">🖼️ ${data.images.length} images found</div>
+          <div class="data-item">📌 ${data.headings.length} headings found</div>
+          ${pageType === 'products' ? `<div class="data-item product">📦 ${data.products.length} products detected</div>` : ''}
+        </div>
+        ${data.paragraphs.slice(0,3).map(p => `<div class="data-item body-text">${p}</div>`).join('')}
+      `;
+
+      // Headings
+      const hd = document.getElementById(`${page}-headings`);
+      hd.innerHTML = data.headings.length
+        ? `<div class="data-count">${data.headings.length} headings found</div>` +
+          data.headings.map(h =>
+            `<div class="data-item heading"><span style="color:var(--purple);font-size:.72rem;margin-right:.4rem">&lt;${h.tag}&gt;</span>${h.text}</div>`
+          ).join('')
+        : '<div class="no-data">No headings found on this page.</div>';
+
+      // Links
+      const lk = document.getElementById(`${page}-links`);
+      lk.innerHTML = data.links.length
+        ? `<div class="data-count">${data.links.length} links found</div>` +
+          data.links.slice(0, 50).map(l =>
+            `<div class="data-item link"><a href="${l.href}" target="_blank" rel="noopener">${l.text}</a><br/><span style="opacity:.5">${l.href.slice(0,80)}</span></div>`
+          ).join('')
+        : '<div class="no-data">No links found.</div>';
+
+      // Meta (home/about)
+      const mt = document.getElementById(`${page}-meta`);
+      if (mt) {
+        mt.innerHTML = Object.entries(data.meta)
+          .filter(([k, v]) => v)
+          .map(([k, v]) => `<div class="data-item meta"><strong>${k}:</strong> ${v.slice(0, 200)}</div>`)
+          .join('') || '<div class="no-data">No meta tags found.</div>';
+      }
+
+      // Products
+      const pr = document.getElementById(`${page}-products`);
+      if (pr) {
+        if (data.products.length > 0) {
+          pr.innerHTML = `<div class="data-count">${data.products.length} products detected</div>` +
+            data.products.map(p => `
+              <div class="data-section" style="background:var(--glass2);border-radius:8px;padding:.75rem;margin-bottom:.75rem">
+                ${p.name ? `<div class="data-item product" style="margin-bottom:.3rem">📦 <strong>${p.name}</strong></div>` : ''}
+                ${p.price ? `<div class="data-item price">💰 ${p.price}</div>` : ''}
+                ${p.desc ? `<div class="data-item body-text">${p.desc}</div>` : ''}
+                ${p.link ? `<div class="data-item link"><a href="${p.link}" target="_blank">→ View Product</a></div>` : ''}
+              </div>
+            `).join('');
+        } else {
+          pr.innerHTML = '<div class="no-data">No products detected. Try adjusting the path (e.g. /shop, /store).</div>';
+        }
+      }
+
+      // Raw
+      const rw = document.getElementById(`${page}-raw`);
+      rw.innerHTML = `<div class="raw-html">${escapeHtml(data.rawSnippet)}…</div>`;
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    // ── Main Scrape Logic ─────────────────────────────────
+    async function startScrape() {
+      const rawUrl = document.getElementById('urlInput').value.trim();
+      if (!rawUrl) {
+        alert('Please enter a website URL first.');
+        return;
+      }
+
+      let baseUrl;
+      try {
+        baseUrl = new URL(rawUrl.startsWith('http') ? rawUrl : 'https://' + rawUrl);
+        baseUrl = baseUrl.origin;
+      } catch {
+        alert('Invalid URL. Please enter a valid website address.');
+        return;
+      }
+
+      // Get checked pages
+      const doHome     = document.getElementById('chk-home')?.checked !== false;
+      const doProducts = document.getElementById('chk-products')?.checked !== false;
+      const doAbout    = document.getElementById('chk-about')?.checked !== false;
+
+      // Get paths
+      const pathHome     = document.getElementById('pathHome')?.value     || '/';
+      const pathProducts = document.getElementById('pathProducts')?.value || '/products';
+      const pathAbout    = document.getElementById('pathAbout')?.value    || '/about';
+
+      const pages = [];
+      if (doHome)     pages.push({ id: 'home',     type: 'home',     path: pathHome,     label: 'Home Page'     });
+      if (doProducts) pages.push({ id: 'products', type: 'products', path: pathProducts, label: 'Products Page'  });
+      if (doAbout)    pages.push({ id: 'about',    type: 'about',    path: pathAbout,    label: 'About Us Page'  });
+
+      if (pages.length === 0) {
+        alert('Please select at least one page to scrape.');
+        return;
+      }
+
+      // UI — loading state
+      const btn = document.getElementById('scrapeBtn');
+      btn.classList.add('loading');
+      btn.disabled = true;
+      btn.querySelector('.loading-text').style.display = 'inline';
+
+      clearLog();
+      scrapedData = {};
+
+      log('🚀', `Starting scrape for: ${baseUrl}`, 'info');
+      log('📋', `Pages to scrape: ${pages.map(p => p.label).join(', ')}`, 'info');
+
+      // Show all selected cards
+      pages.forEach(p => {
+        const card = document.getElementById(`card-${p.id}`);
+        card.classList.add('visible');
+        document.getElementById(`url-${p.id}`).textContent = baseUrl + p.path;
+        setCardStatus(p.id, 'loading');
+        // Clear previous content
+        ['overview','headings','links','meta','products','raw'].forEach(tab => {
+          const el = document.getElementById(`${p.id}-${tab}`);
+          if (el) el.innerHTML = '<div class="no-data pulse">Fetching data…</div>';
+        });
+      });
+
+      // Scrape each page
+      for (const page of pages) {
+        const fullUrl = baseUrl + page.path;
+        log('🔍', `Fetching: ${fullUrl}`, 'working');
+
+        try {
+          const html = await fetchViaProxy(fullUrl);
+          const parsed = parseHTML(html, baseUrl, page.type);
+          scrapedData[page.id] = { url: fullUrl, page: page.label, ...parsed };
+
+          renderCard(page.id, page.type, fullUrl, parsed);
+          setCardStatus(page.id, 'ok');
+          log('✅', `${page.label} — ${parsed.wordCount} words, ${parsed.links.length} links, ${parsed.headings.length} headings`, 'ok');
+
+        } catch (err) {
+          const card = document.getElementById(`card-${page.id}`);
+          ['overview','headings','links','meta','products','raw'].forEach(tab => {
+            const el = document.getElementById(`${page.id}-${tab}`);
+            if (el) el.innerHTML = `<div class="no-data" style="color:var(--red)">⚠️ ${err.message}</div>`;
+          });
+          setCardStatus(page.id, 'err');
+          log('❌', `${page.label} failed: ${err.message}`, 'err');
+          scrapedData[page.id] = { url: fullUrl, page: page.label, error: err.message };
+        }
+      }
+
+      log('🏁', 'Scraping complete!', 'ok');
+
+      // Show export bar
+      document.getElementById('exportBar').classList.add('visible');
+
+      // Reset button
+      btn.classList.remove('loading');
+      btn.disabled = false;
+      btn.querySelector('.loading-text').style.display = 'none';
+    }
+
+    // ── Export ────────────────────────────────────────────
+    function exportJSON() {
+      const blob = new Blob([JSON.stringify(scrapedData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const host = Object.values(scrapedData)[0]?.url?.split('/')[2] || 'scrape';
+      a.download = `${host}-scrape.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportText() {
+      let out = '';
+      for (const [key, d] of Object.entries(scrapedData)) {
+        out += `${'='.repeat(60)}\n${d.page.toUpperCase()}\nURL: ${d.url}\n${'='.repeat(60)}\n\n`;
+        if (d.error) { out += `ERROR: ${d.error}\n\n`; continue; }
+        out += `TITLE: ${d.meta?.title || '—'}\n`;
+        out += `DESCRIPTION: ${d.meta?.description || '—'}\n`;
+        out += `KEYWORDS: ${d.meta?.keywords || '—'}\n`;
+        out += `WORD COUNT: ${d.wordCount}\n\n`;
+        out += `HEADINGS:\n${d.headings?.map(h => `  [${h.tag}] ${h.text}`).join('\n') || '  —'}\n\n`;
+        out += `BODY TEXT:\n${d.paragraphs?.slice(0,5).map(p => `  ${p}`).join('\n\n') || '  —'}\n\n`;
+        if (d.products?.length) {
+          out += `PRODUCTS:\n${d.products.map(p => `  • ${p.name}${p.price?' | '+p.price:''}`).join('\n')}\n\n`;
+        }
+        out += `LINKS (${d.links?.length}):\n${d.links?.slice(0,20).map(l => `  • ${l.text} → ${l.href}`).join('\n') || '  —'}\n\n`;
+      }
+      const blob = new Blob([out], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const host = Object.values(scrapedData)[0]?.url?.split('/')[2] || 'scrape';
+      a.download = `${host}-scrape.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function clearAll() {
+      scrapedData = {};
+      clearLog();
+      document.querySelectorAll('.result-card').forEach(c => c.classList.remove('visible'));
+      document.getElementById('exportBar').classList.remove('visible');
+    }
+
+    // Enter key on URL input
+    document.getElementById('urlInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') startScrape();
+    });
+  </script>
+</body>
+</html>

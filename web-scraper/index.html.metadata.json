@@ -1,0 +1,5 @@
+{
+  "summary": "Web Scraper Tool - a browser-based app where users enter a website URL and it scrapes content from the Home page, Products page, and About Us page using multiple CORS proxies. Features dark premium design with real-time status, extracted content display, and JSON/text export.",
+  "updatedAt": "2026-07-09T22:21:47.253610300Z",
+  "userFacing": true
+}

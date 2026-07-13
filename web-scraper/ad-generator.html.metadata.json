@@ -1,0 +1,5 @@
+{
+  "summary": "Fully rebuilt ad-generator.html that works 100% locally: load scraped-products.json via file picker (produced by run-scraper.js), select any product from the list, and instantly render 40 categorized ad templates with copy-to-clipboard and text export.",
+  "updatedAt": "2026-07-09T23:29:47.507665500Z",
+  "userFacing": true
+}

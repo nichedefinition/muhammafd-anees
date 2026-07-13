@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brand DNA Builder — Craft Your Brand Identity</title>
+  <meta name="description" content="Define, articulate, and visualize your brand's core DNA. Build a complete brand identity with personality, values, voice, and visual direction." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Background Orbs -->
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="bg-orb orb-3"></div>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="logo">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+          <circle cx="16" cy="16" r="15" stroke="url(#logoGrad)" stroke-width="2"/>
+          <path d="M8 16 C8 10, 24 10, 24 16 C24 22, 8 22, 8 16Z" fill="url(#logoGrad)" opacity="0.8"/>
+          <circle cx="16" cy="16" r="4" fill="white"/>
+          <defs>
+            <linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32">
+              <stop offset="0%" stop-color="#a78bfa"/>
+              <stop offset="100%" stop-color="#ec4899"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <span>Brand<strong>DNA</strong></span>
+      </div>
+      <nav class="step-nav" id="stepNav">
+        <button class="nav-dot active" data-step="0" title="Brand Basics">1</button>
+        <button class="nav-dot" data-step="1" title="Personality">2</button>
+        <button class="nav-dot" data-step="2" title="Core Values">3</button>
+        <button class="nav-dot" data-step="3" title="Brand Voice">4</button>
+        <button class="nav-dot" data-step="4" title="Visual Identity">5</button>
+        <button class="nav-dot" data-step="5" title="Your DNA">6</button>
+      </nav>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main App -->
+  <main class="app-main">
+
+    <!-- ===== STEP 0: Brand Basics ===== -->
+    <section class="step-section active" id="step-0" data-step="0">
+      <div class="step-hero">
+        <div class="step-tag">Step 1 of 6</div>
+        <h1 class="step-title">What's your <em>brand called?</em></h1>
+        <p class="step-subtitle">Let's start with the foundations. Tell us about your brand's core identity.</p>
+      </div>
+      <div class="form-grid">
+        <div class="form-group full">
+          <label for="brandName">Brand Name <span class="req">*</span></label>
+          <input type="text" id="brandName" class="form-input" placeholder="e.g. Luminary Studio" maxlength="60" />
+        </div>
+        <div class="form-group full">
+          <label for="brandTagline">Brand Tagline</label>
+          <input type="text" id="brandTagline" class="form-input" placeholder="e.g. Where ideas take flight" maxlength="100" />
+        </div>
+        <div class="form-group">
+          <label for="brandIndustry">Industry / Category</label>
+          <select id="brandIndustry" class="form-input form-select">
+            <option value="">Select industry…</option>
+            <option>Technology &amp; SaaS</option>
+            <option>Fashion &amp; Lifestyle</option>
+            <option>Health &amp; Wellness</option>
+            <option>Finance &amp; Fintech</option>
+            <option>Food &amp; Beverage</option>
+            <option>Creative &amp; Design</option>
+            <option>Education &amp; Learning</option>
+            <option>Real Estate</option>
+            <option>Retail &amp; E-commerce</option>
+            <option>Entertainment &amp; Media</option>
+            <option>Consulting &amp; Services</option>
+            <option>Non-Profit</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="brandStage">Brand Stage</label>
+          <select id="brandStage" class="form-input form-select">
+            <option value="">Select stage…</option>
+            <option>Pre-launch / Concept</option>
+            <option>Startup (0–1 year)</option>
+            <option>Growth (1–3 years)</option>
+            <option>Established (3+ years)</option>
+            <option>Rebrand / Refresh</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label for="brandMission">Brand Mission <span class="hint">— Why do you exist?</span></label>
+          <textarea id="brandMission" class="form-input form-textarea" placeholder="e.g. We exist to empower creators to build fearlessly, with tools that inspire and systems that scale." rows="3" maxlength="300"></textarea>
+          <div class="char-count" id="missionCount">0 / 300</div>
+        </div>
+        <div class="form-group full">
+          <label for="brandVision">Brand Vision <span class="hint">— Where are you going?</span></label>
+          <textarea id="brandVision" class="form-input form-textarea" placeholder="e.g. A world where every entrepreneur has the brand presence of a Fortune 500 company." rows="3" maxlength="300"></textarea>
+          <div class="char-count" id="visionCount">0 / 300</div>
+        </div>
+      </div>
+      <div class="step-actions">
+        <button class="btn btn-primary" id="step0Next">Continue <span class="btn-arrow">→</span></button>
+      </div>
+    </section>
+
+    <!-- ===== STEP 1: Brand Personality / Archetype ===== -->
+    <section class="step-section" id="step-1" data-step="1">
+      <div class="step-hero">
+        <div class="step-tag">Step 2 of 6</div>
+        <h2 class="step-title">What's your brand's <em>personality?</em></h2>
+        <p class="step-subtitle">Choose the archetype that best captures your brand's spirit. You can select up to 2.</p>
+      </div>
+      <div class="archetype-grid" id="archetypeGrid"></div>
+      <div class="step-hero" style="margin-top: 3rem;">
+        <h3 class="section-label">Tone of Voice</h3>
+        <p class="step-subtitle" style="margin-bottom: 1.5rem;">Drag each slider to define how your brand communicates.</p>
+      </div>
+      <div class="sliders-grid" id="slidersGrid"></div>
+      <div class="step-actions">
+        <button class="btn btn-ghost" onclick="goToStep(0)">← Back</button>
+        <button class="btn btn-primary" id="step1Next">Continue <span class="btn-arrow">→</span></button>
+      </div>
+    </section>
+
+    <!-- ===== STEP 2: Core Values ===== -->
+    <section class="step-section" id="step-2" data-step="2">
+      <div class="step-hero">
+        <div class="step-tag">Step 3 of 6</div>
+        <h2 class="step-title">What does your brand <em>stand for?</em></h2>
+        <p class="step-subtitle">Select 3–6 core values that define your brand's principles and commitments.</p>
+      </div>
+      <div class="values-grid" id="valuesGrid"></div>
+      <div class="custom-value-wrap">
+        <input type="text" id="customValueInput" class="form-input" placeholder="+ Add a custom value…" maxlength="30" />
+        <button class="btn btn-ghost btn-sm" id="addCustomValue">Add</button>
+      </div>
+      <div class="selected-values-preview" id="selectedValuesPreview">
+        <span class="preview-label">Selected:</span>
+        <span id="selectedValuesList">None yet</span>
+      </div>
+      <div class="step-actions">
+        <button class="btn btn-ghost" onclick="goToStep(1)">← Back</button>
+        <button class="btn btn-primary" id="step2Next">Continue <span class="btn-arrow">→</span></button>
+      </div>
+    </section>
+
+    <!-- ===== STEP 3: Brand Voice ===== -->
+    <section class="step-section" id="step-3" data-step="3">
+      <div class="step-hero">
+        <div class="step-tag">Step 4 of 6</div>
+        <h2 class="step-title">How does your brand <em>speak?</em></h2>
+        <p class="step-subtitle">Define your messaging pillars and the words that represent — and don't represent — your brand.</p>
+      </div>
+
+      <div class="voice-section">
+        <h3 class="section-label">Messaging Pillars</h3>
+        <p class="section-hint">The 3 core themes your brand always communicates.</p>
+        <div class="pillars-wrap" id="pillarsWrap">
+          <div class="pillar-item">
+            <span class="pillar-num">01</span>
+            <input type="text" class="form-input pillar-input" placeholder="e.g. Effortless Simplicity" maxlength="50" data-pillar="0"/>
+          </div>
+          <div class="pillar-item">
+            <span class="pillar-num">02</span>
+            <input type="text" class="form-input pillar-input" placeholder="e.g. Human Connection" maxlength="50" data-pillar="1"/>
+          </div>
+          <div class="pillar-item">
+            <span class="pillar-num">03</span>
+            <input type="text" class="form-input pillar-input" placeholder="e.g. Bold Innovation" maxlength="50" data-pillar="2"/>
+          </div>
+        </div>
+      </div>
+
+      <div class="voice-section">
+        <h3 class="section-label">Brand Words</h3>
+        <div class="word-banks">
+          <div class="word-bank">
+            <h4 class="wb-label wb-yes">✓ We ARE</h4>
+            <p class="section-hint">Words that describe your brand</p>
+            <div class="word-tags" id="weAreTags"></div>
+            <div class="word-input-wrap">
+              <input type="text" id="weAreInput" class="form-input word-input" placeholder="Type a word + Enter" maxlength="25"/>
+            </div>
+          </div>
+          <div class="word-bank">
+            <h4 class="wb-label wb-no">✕ We Are NOT</h4>
+            <p class="section-hint">Words to avoid entirely</p>
+            <div class="word-tags" id="weAreNotTags"></div>
+            <div class="word-input-wrap">
+              <input type="text" id="weAreNotInput" class="form-input word-input" placeholder="Type a word + Enter" maxlength="25"/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="voice-section">
+        <h3 class="section-label">Target Audience</h3>
+        <textarea id="targetAudience" class="form-input form-textarea" placeholder="Describe your ideal customer: who they are, what they care about, what keeps them up at night…" rows="3" maxlength="400"></textarea>
+        <div class="char-count" id="audienceCount">0 / 400</div>
+      </div>
+
+      <div class="step-actions">
+        <button class="btn btn-ghost" onclick="goToStep(2)">← Back</button>
+        <button class="btn btn-primary" id="step3Next">Continue <span class="btn-arrow">→</span></button>
+      </div>
+    </section>
+
+    <!-- ===== STEP 4: Visual Identity ===== -->
+    <section class="step-section" id="step-4" data-step="4">
+      <div class="step-hero">
+        <div class="step-tag">Step 5 of 6</div>
+        <h2 class="step-title">What does your brand <em>look like?</em></h2>
+        <p class="step-subtitle">Choose a visual direction that aligns with your brand's personality.</p>
+      </div>
+
+      <div class="visual-section">
+        <h3 class="section-label">Color Palette</h3>
+        <p class="section-hint">Select a palette mood, then fine-tune your colors.</p>
+        <div class="palette-moods" id="paletteMoods"></div>
+        <div class="custom-colors" id="customColors">
+          <div class="color-picker-wrap">
+            <label>Primary</label>
+            <input type="color" id="primaryColor" class="color-swatch-input" value="#7c3aed"/>
+          </div>
+          <div class="color-picker-wrap">
+            <label>Secondary</label>
+            <input type="color" id="secondaryColor" class="color-swatch-input" value="#ec4899"/>
+          </div>
+          <div class="color-picker-wrap">
+            <label>Accent</label>
+            <input type="color" id="accentColor" class="color-swatch-input" value="#f59e0b"/>
+          </div>
+          <div class="color-picker-wrap">
+            <label>Neutral</label>
+            <input type="color" id="neutralColor" class="color-swatch-input" value="#1e1b4b"/>
+          </div>
+        </div>
+        <div class="palette-preview" id="palettePreview"></div>
+      </div>
+
+      <div class="visual-section">
+        <h3 class="section-label">Typography Feel</h3>
+        <div class="type-options" id="typeOptions"></div>
+      </div>
+
+      <div class="visual-section">
+        <h3 class="section-label">Visual Style</h3>
+        <div class="style-options" id="styleOptions"></div>
+      </div>
+
+      <div class="step-actions">
+        <button class="btn btn-ghost" onclick="goToStep(3)">← Back</button>
+        <button class="btn btn-primary" id="step4Next">Generate My Brand DNA <span class="btn-arrow">✦</span></button>
+      </div>
+    </section>
+
+    <!-- ===== STEP 5: Brand DNA Summary ===== -->
+    <section class="step-section" id="step-5" data-step="5">
+      <div class="step-hero">
+        <div class="step-tag">Your Brand DNA</div>
+        <h2 class="step-title" id="dnaBrandName">Your Brand DNA</h2>
+        <p class="step-subtitle">Here's your complete brand identity blueprint — ready to guide every decision.</p>
+      </div>
+
+      <div class="dna-card" id="dnaCard">
+        <!-- Brand Header -->
+        <div class="dna-header" id="dnaHeader">
+          <div class="dna-logo-ring" id="dnaLogoRing">
+            <span id="dnaInitials">BN</span>
+          </div>
+          <div class="dna-header-text">
+            <h2 id="dnaNameDisplay">Brand Name</h2>
+            <p id="dnaTaglineDisplay">Tagline goes here</p>
+            <div class="dna-badges">
+              <span class="dna-badge" id="dnaIndustryBadge">Industry</span>
+              <span class="dna-badge" id="dnaStageBadge">Stage</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- DNA Grid -->
+        <div class="dna-grid">
+          <div class="dna-block">
+            <div class="dna-block-icon">🎯</div>
+            <h4>Mission</h4>
+            <p id="dnaMission">—</p>
+          </div>
+          <div class="dna-block">
+            <div class="dna-block-icon">🌟</div>
+            <h4>Vision</h4>
+            <p id="dnaVision">—</p>
+          </div>
+          <div class="dna-block">
+            <div class="dna-block-icon">🧠</div>
+            <h4>Personality</h4>
+            <div id="dnaPersonality" class="dna-chips"></div>
+          </div>
+          <div class="dna-block">
+            <div class="dna-block-icon">💎</div>
+            <h4>Core Values</h4>
+            <div id="dnaValues" class="dna-chips"></div>
+          </div>
+          <div class="dna-block">
+            <div class="dna-block-icon">🗣️</div>
+            <h4>Brand Voice</h4>
+            <div id="dnaVoiceSliders"></div>
+          </div>
+          <div class="dna-block">
+            <div class="dna-block-icon">🏛️</div>
+            <h4>Messaging Pillars</h4>
+            <div id="dnaPillars" class="pillar-list"></div>
+          </div>
+          <div class="dna-block">
+            <div class="dna-block-icon">✅</div>
+            <h4>We ARE</h4>
+            <div id="dnaWeAre" class="dna-chips yes-chips"></div>
+          </div>
+          <div class="dna-block">
+            <div class="dna-block-icon">🚫</div>
+            <h4>We Are NOT</h4>
+            <div id="dnaWeAreNot" class="dna-chips no-chips"></div>
+          </div>
+          <div class="dna-block">
+            <div class="dna-block-icon">👥</div>
+            <h4>Target Audience</h4>
+            <p id="dnaAudience">—</p>
+          </div>
+          <div class="dna-block dna-palette-block">
+            <div class="dna-block-icon">🎨</div>
+            <h4>Visual Identity</h4>
+            <div class="dna-palette-row" id="dnaPaletteRow"></div>
+            <div class="dna-type-info" id="dnaTypeInfo"></div>
+            <div class="dna-style-info" id="dnaStyleInfo"></div>
+          </div>
+        </div>
+
+        <!-- DNA Score -->
+        <div class="dna-score-section">
+          <div class="dna-score-header">
+            <h3>Brand DNA Score</h3>
+            <p>How complete and consistent is your brand identity?</p>
+          </div>
+          <div class="dna-score-ring-wrap">
+            <svg class="dna-score-ring" viewBox="0 0 120 120" width="120" height="120">
+              <circle class="ring-bg" cx="60" cy="60" r="50" />
+              <circle class="ring-fill" id="scoreRingFill" cx="60" cy="60" r="50"
+                stroke-dasharray="314"
+                stroke-dashoffset="314"
+              />
+            </svg>
+            <div class="dna-score-num" id="dnaScoreNum">0%</div>
+          </div>
+          <div class="dna-score-bars" id="dnaScoreBars"></div>
+        </div>
+      </div>
+
+      <div class="step-actions">
+        <button class="btn btn-ghost" onclick="goToStep(4)">← Edit</button>
+        <button class="btn btn-primary" id="downloadBtn">Download Brand Brief ↓</button>
+        <button class="btn btn-accent" id="startOverBtn">Start Over ✦</button>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

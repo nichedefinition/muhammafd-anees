@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Muhammad Anees — Premium Tech & Marketing Automations Portfolio</title>
+  <meta name="description" content="Portfolio of Muhammad Anees, developer specializing in competitor intelligence scraping, automated AI websites, startup pitch decks, and premium SEO services." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    /* --- CSS Variables & Design System --- */
+    :root {
+      --bg: #060814;
+      --surface: #0b0d1f;
+      --surface-hover: #121633;
+      --border: rgba(255, 255, 255, 0.06);
+      --border-accent: rgba(34, 211, 238, 0.2);
+      --text: #f1f3fa;
+      --text-muted: #8e94b2;
+      --text-dim: #5c6280;
+      
+      --cyan: #22d3ee;
+      --purple: #a78bfa;
+      --pink: #f472b6;
+      --green: #34d399;
+      --yellow: #fbbf24;
+      
+      --glow-cyan: 0 0 30px rgba(34, 211, 238, 0.15);
+      --glow-purple: 0 0 30px rgba(167, 139, 250, 0.15);
+      --radius: 16px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* --- Background Mesh --- */
+    .bg-mesh {
+      position: fixed; inset: 0; z-index: -1; pointer-events: none;
+      background:
+        radial-gradient(ellipse 60% 40% at 10% 20%, rgba(34, 211, 238, 0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 30% at 85% 75%, rgba(167, 139, 250, 0.08) 0%, transparent 60%);
+    }
+
+    /* --- Header & Navigation --- */
+    header {
+      position: sticky; top: 0; z-index: 100;
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      background: rgba(6, 8, 20, 0.7);
+      border-bottom: 1.5px solid var(--border);
+    }
+    .header-container {
+      max-width: 1200px; margin: 0 auto; padding: 1rem 2rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .logo-container {
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+    .logo-icon {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 1rem; color: #000;
+    }
+    .logo-text { font-size: 1.2rem; font-weight: 700; letter-spacing: -0.02em; }
+    .logo-text span {
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    nav { display: flex; gap: 1.5rem; }
+    nav a {
+      color: var(--text-muted); text-decoration: none; font-size: 0.9rem; font-weight: 500;
+      transition: var(--transition);
+    }
+    nav a:hover { color: var(--cyan); }
+    
+    .btn-fiverr {
+      background: #1dbf73; color: #fff; border: none; font-weight: 700; font-size: 0.85rem;
+      padding: 0.5rem 1.25rem; border-radius: 99px; cursor: pointer; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 0.5rem; transition: var(--transition);
+    }
+    .btn-fiverr:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(29, 191, 115, 0.3); }
+
+    /* --- Hero Section --- */
+    .hero {
+      max-width: 1200px; margin: 0 auto; padding: 6rem 2rem 4rem;
+      text-align: center; position: relative;
+    }
+    .badge-hero {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: rgba(34, 211, 238, 0.1); border: 1.5px solid var(--border-accent);
+      border-radius: 99px; padding: 6px 16px; font-size: 0.8rem; font-weight: 700;
+      color: var(--cyan); letter-spacing: 0.08em; text-transform: uppercase;
+      margin-bottom: 2rem;
+    }
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4.5rem); font-weight: 900; line-height: 1.05;
+      letter-spacing: -0.03em; margin-bottom: 1.5rem;
+    }
+    .hero h1 span {
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero p {
+      font-size: clamp(1rem, 2vw, 1.2rem); color: var(--text-muted); max-width: 700px;
+      margin: 0 auto 2.5rem; font-weight: 400;
+    }
+    .hero-ctas { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      color: #060814; border: none; font-weight: 700; padding: 0.85rem 1.85rem;
+      border-radius: 12px; cursor: pointer; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 0.5rem; transition: var(--transition);
+      box-shadow: 0 4px 20px rgba(34, 211, 238, 0.25);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(34, 211, 238, 0.4); }
+
+    .btn-secondary {
+      background: var(--surface); color: var(--text); border: 1.5px solid var(--border);
+      font-weight: 600; padding: 0.85rem 1.85rem; border-radius: 12px;
+      cursor: pointer; text-decoration: none; display: inline-flex; align-items: center;
+      gap: 0.5rem; transition: var(--transition);
+    }
+    .btn-secondary:hover { border-color: var(--cyan); color: var(--cyan); }
+
+    /* --- Stats Section --- */
+    .stats-bar {
+      max-width: 1000px; margin: 2rem auto 5rem;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem; background: var(--surface); border: 1.5px solid var(--border);
+      border-radius: var(--radius); padding: 2rem; text-align: center;
+    }
+    .stat-item h3 {
+      font-size: 2.2rem; font-weight: 800; color: var(--cyan); margin-bottom: 0.25rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .stat-item p { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+
+    /* --- Interactive Portfolios Section --- */
+    .section-container {
+      max-width: 1200px; margin: 0 auto 6rem; padding: 0 2rem;
+    }
+    .section-header {
+      margin-bottom: 3rem; text-align: left; position: relative;
+    }
+    .section-header h2 { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; }
+    .section-header h2 span { color: var(--cyan); }
+    .section-header p { color: var(--text-muted); font-size: 0.95rem; margin-top: 0.5rem; max-width: 500px; }
+
+    .demo-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 4rem;
+    }
+    .demo-card {
+      background: var(--surface); border: 1.5px solid var(--border);
+      border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column;
+      transition: var(--transition);
+    }
+    .demo-card:hover {
+      border-color: var(--border-accent); transform: translateY(-3px);
+      box-shadow: var(--glow-cyan);
+    }
+    .demo-preview-media {
+      width: 100%; aspect-ratio: 16 / 9; background: #070918;
+      border-bottom: 1.5px solid var(--border); position: relative; overflow: hidden;
+    }
+    .demo-preview-media img { width: 100%; height: 100%; object-fit: cover; transition: var(--transition); }
+    .demo-card:hover .demo-preview-media img { transform: scale(1.03); }
+    
+    .demo-badge-floating {
+      position: absolute; top: 1rem; left: 1rem;
+      background: rgba(6, 8, 20, 0.85); border: 1px solid var(--border);
+      border-radius: 6px; padding: 4px 10px; font-size: 0.75rem; font-weight: 600;
+      color: var(--cyan); backdrop-filter: blur(8px);
+    }
+    
+    .demo-info { padding: 1.75rem; display: flex; flex-direction: column; flex: 1; }
+    .demo-info h3 { font-size: 1.3rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .demo-info p { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.55; }
+    
+    .feature-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.75rem; }
+    .feature-tag {
+      background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border);
+      border-radius: 6px; padding: 3px 8px; font-size: 0.75rem; font-weight: 500;
+      color: var(--text-muted);
+    }
+    
+    .demo-actions {
+      display: flex; gap: 0.75rem; margin-top: auto;
+    }
+    .demo-actions .btn { flex: 1; font-size: 0.85rem; padding: 0.75rem 1rem; border-radius: 8px; text-align: center; }
+
+    /* --- Gig Services Table List --- */
+    .gigs-list {
+      display: flex; flex-direction: column; gap: 1.25rem;
+    }
+    .gig-row-item {
+      background: var(--surface); border: 1.5px solid var(--border);
+      border-radius: 12px; padding: 1.25rem 1.75rem;
+      display: grid; grid-template-columns: 2fr 1fr 1fr; align-items: center;
+      gap: 1.5rem; transition: var(--transition);
+    }
+    .gig-row-item:hover {
+      border-color: rgba(167, 139, 250, 0.25); background: var(--surface-hover);
+    }
+    .gig-title-col h4 { font-size: 1.05rem; font-weight: 600; margin-bottom: 0.2rem; }
+    .gig-title-col p { font-size: 0.8rem; color: var(--text-muted); }
+    .gig-badge-col { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .gig-badge-col span {
+      background: rgba(167, 139, 250, 0.08); border: 1px solid rgba(167, 139, 250, 0.2);
+      border-radius: 4px; padding: 2px 8px; font-size: 0.72rem; font-weight: 600;
+      color: var(--purple); text-transform: uppercase;
+    }
+    .gig-cta-col { text-align: right; }
+    
+    /* --- Contact Footer --- */
+    footer {
+      border-top: 1px solid var(--border); background: #03040c;
+      padding: 4rem 2rem; text-align: center;
+    }
+    .footer-content { max-width: 800px; margin: 0 auto; }
+    .footer-content h2 { font-size: 1.8rem; font-weight: 800; margin-bottom: 1rem; }
+    .footer-content p { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2rem; }
+    .social-links { display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 2rem; }
+    .social-links a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; transition: var(--transition); }
+    .social-links a:hover { color: var(--cyan); }
+    .copyright { font-size: 0.8rem; color: var(--text-dim); }
+
+    /* --- Responsive Styling --- */
+    @media (max-width: 860px) {
+      .demo-grid { grid-template-columns: 1fr; }
+      .gig-row-item { grid-template-columns: 1fr; gap: 0.75rem; text-align: left; }
+      .gig-cta-col { text-align: left; margin-top: 0.5rem; }
+      nav { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-mesh"></div>
+
+  <!-- Header -->
+  <header>
+    <div class="header-container">
+      <div class="logo-container">
+        <div class="logo-icon">M</div>
+        <div class="logo-text">Anees<span>Studio</span></div>
+      </div>
+      <nav>
+        <a href="#interactive-suites">Interactive Tools</a>
+        <a href="#branding-services">Core Services</a>
+        <a href="#seo-services">SEO & Marketing</a>
+      </nav>
+      <a href="https://www.fiverr.com/apprentice_need" target="_blank" class="btn-fiverr">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+          <circle cx="6" cy="6" r="5"/>
+        </svg>
+        Fiverr Profile
+      </a>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="badge-hero">⚡ Custom Code & High-Impact Automation</div>
+    <h1>Premium Web Apps &<br><span>Data Pipelines</span></h1>
+    <p>Hi, I'm Muhammad Anees. I design custom competitor intelligence dashboards, launch automated AI blogging engines, and build premium brand identities designed to generate sales.</p>
+    <div class="hero-ctas">
+      <a href="#interactive-suites" class="btn-primary">View Interactive Tools</a>
+      <a href="https://www.fiverr.com/apprentice_need" target="_blank" class="btn-secondary">Hire Me on Fiverr</a>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section class="stats-bar">
+    <div class="stat-item">
+      <h3>100%</h3>
+      <p>Custom Code Solutions</p>
+    </div>
+    <div class="stat-item">
+      <h3>40+</h3>
+      <p>Ad Blueprints Instant</p>
+    </div>
+    <div class="stat-item">
+      <h3>WordPress</h3>
+      <p>Core Development</p>
+    </div>
+    <div class="stat-item">
+      <h3>SEO First</h3>
+      <p>Google Frontpage Strategy</p>
+    </div>
+  </section>
+
+  <!-- Interactive Suites Section -->
+  <section id="interactive-suites" class="section-container">
+    <div class="section-header">
+      <h2>Interactive <span>Service Demos</span></h2>
+      <p>Test my custom-built automation portals right now in your browser. Fully functional staging environments.</p>
+    </div>
+
+    <div class="demo-grid">
+      <!-- Demo 1: SpyGlass Scraper -->
+      <div class="demo-card">
+        <div class="demo-preview-media">
+          <img src="web_scraper_preview_1783635718986.webp" alt="Competitor Scraping Tool Portal" />
+          <div class="demo-badge-floating">Live Simulator</div>
+        </div>
+        <div class="demo-info">
+          <h3>E-Commerce Competitor Price Scraper</h3>
+          <p>Extract product lists, pricing models, and stocks from any website. Auto-generates competitor price matrix grids dynamically bypasses CORS.</p>
+          <div class="feature-tags">
+            <span class="feature-tag">CORS Proxy</span>
+            <span class="feature-tag">JSON & TXT Export</span>
+            <span class="feature-tag">Shopify Parser</span>
+          </div>
+          <div class="demo-actions">
+            <a href="web-scraper/index.html" class="btn btn-secondary">Open Live Tool</a>
+            <a href="https://www.fiverr.com/apprentice_need/build-a-custom-competitor-intelligence-and-scraping-dashboard" target="_blank" class="btn btn-primary">Fiverr Gig</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Demo 2: Brand DNA Builder -->
+      <div class="demo-card">
+        <div class="demo-preview-media">
+          <img src="brand_dna_preview_1783634259829.webp" alt="Brand DNA Wizard Interface" />
+          <div class="demo-badge-floating">Live Wizard</div>
+        </div>
+        <div class="demo-info">
+          <h3>Brand DNA Builder & Ad Generator</h3>
+          <p>Define archetypes, tone of voice, and generate 40 customized social media ad copy templates (Facebook, Google, LinkedIn) in one click.</p>
+          <div class="feature-tags">
+            <span class="feature-tag">Ad Copy Generator</span>
+            <span class="feature-tag">Canvas Banner Maker</span>
+            <span class="feature-tag">Archetypes Wizard</span>
+          </div>
+          <div class="demo-actions">
+            <a href="brand-dna-builder/index.html" class="btn btn-secondary">Open Live Tool</a>
+            <a href="https://www.fiverr.com/apprentice_need/create-your-brand-identity-ad-copy-templates" target="_blank" class="btn btn-primary">Fiverr Gig</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Core Services Gigs Section -->
+  <section id="branding-services" class="section-container">
+    <div class="section-header">
+      <h2>Fiverr <span>Development Gigs</span></h2>
+      <p>Secure custom web applications, automation builders, and design suites directly on Fiverr.</p>
+    </div>
+
+    <div class="gigs-list">
+      <!-- Competitor Scraper Gig -->
+      <div class="gig-row-item">
+        <div class="gig-title-col">
+          <h4>Custom Competitor Intelligence Scraping Dashboard</h4>
+          <p>Retrieve catalogs, compare margins, and schedule automated price-monitoring crawlers.</p>
+        </div>
+        <div class="gig-badge-col">
+          <span>Web Scraping</span>
+          <span>Node.js</span>
+        </div>
+        <div class="gig-cta-col">
+          <a href="https://www.fiverr.com/apprentice_need/build-a-custom-competitor-intelligence-and-scraping-dashboard" target="_blank" class="btn-fiverr">Order Gig</a>
+        </div>
+      </div>
+
+      <!-- Startup Investor Pitch Deck Gig -->
+      <div class="gig-row-item">
+        <div class="gig-title-col">
+          <h4>Modern Startup Investor Pitch Deck Presentation</h4>
+          <p>Premium slide structures customized to brand archetypes with professional speaker coach timers.</p>
+        </div>
+        <div class="gig-badge-col">
+          <span>Pitch Decks</span>
+          <span>Pitch Coach</span>
+        </div>
+        <div class="gig-cta-col">
+          <a href="https://www.fiverr.com/apprentice_need/design-a-modern-startup-investor-pitch-deck-presentation" target="_blank" class="btn-fiverr">Order Gig</a>
+        </div>
+      </div>
+
+      <!-- Brand Identity Ad Copy Gig -->
+      <div class="gig-row-item">
+        <div class="gig-title-col">
+          <h4>Brand Identity &amp; 40 Platform Ad Copy Templates</h4>
+          <p>Get a complete branding brief layout along with high-converting cross-platform copy sets.</p>
+        </div>
+        <div class="gig-badge-col">
+          <span>Branding Brief</span>
+          <span>Ad Copywriter</span>
+        </div>
+        <div class="gig-cta-col">
+          <a href="https://www.fiverr.com/apprentice_need/create-your-brand-identity-ad-copy-templates" target="_blank" class="btn-fiverr">Order Gig</a>
+        </div>
+      </div>
+
+      <!-- Automated Niche Website Gig -->
+      <div class="gig-row-item">
+        <div class="gig-title-col">
+          <h4>Fully Automated Niche Website Using Next-Gen AI Agents</h4>
+          <p>Set up autonomous agents that source keywords, generate first-page SEO text, and publish drafts.</p>
+        </div>
+        <div class="gig-badge-col">
+          <span>AI Blogging</span>
+          <span>Automations</span>
+        </div>
+        <div class="gig-cta-col">
+          <a href="https://www.fiverr.com/apprentice_need/build-a-fully-automated-niche-website-using-next-gen-ai-agents" target="_blank" class="btn-fiverr">Order Gig</a>
+        </div>
+      </div>
+
+      <!-- Wordpress Website Gig -->
+      <div class="gig-row-item">
+        <div class="gig-title-col">
+          <h4>Build, Fix, or Update Your WordPress Website</h4>
+          <p>Core updates, performance fixes, layout modifications, and API custom setups.</p>
+        </div>
+        <div class="gig-badge-col">
+          <span>WordPress</span>
+          <span>PHP / HTML</span>
+        </div>
+        <div class="gig-cta-col">
+          <a href="https://www.fiverr.com/apprentice_need/build-fix-or-update-your-wordpress-website" target="_blank" class="btn-fiverr">Order Gig</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SEO Gigs Section -->
+  <section id="seo-services" class="section-container">
+    <div class="section-header">
+      <h2>Search Engine <span>Optimization (SEO)</span></h2>
+      <p>Drive Google page-one results and establish high-authority backlink networks.</p>
+    </div>
+
+    <div class="gigs-list">
+      <!-- Guest Post Gig -->
+      <div class="gig-row-item">
+        <div class="gig-title-col">
+          <h4>Guest Post on High Authority AI Niche Website</h4>
+          <p>Increase domain rank (DR/DA) through contextual editorial placements in the artificial intelligence sector.</p>
+        </div>
+        <div class="gig-badge-col">
+          <span>Guest Blogging</span>
+          <span>High DA Backlinks</span>
+        </div>
+        <div class="gig-cta-col">
+          <a href="https://www.fiverr.com/apprentice_need/guest-post-on-ai-niche-website-high-dr-and-da" target="_blank" class="btn-fiverr">Order Gig</a>
+        </div>
+      </div>
+
+      <!-- Google First Page Article Gig -->
+      <div class="gig-row-item">
+        <div class="gig-title-col">
+          <h4>Expert Problem-Driven SEO Article for Google First Page</h4>
+          <p>Semantic structuring, keyword mapping, search-intent optimization, and clear solution outlines.</p>
+        </div>
+        <div class="gig-badge-col">
+          <span>SEO Content Writing</span>
+          <span>Rank Booster</span>
+        </div>
+        <div class="gig-cta-col">
+          <a href="https://www.fiverr.com/apprentice_need/expert-problem-driven-seo-article-for-google-first-page" target="_blank" class="btn-fiverr">Order Gig</a>
+        </div>
+      </div>
+
+      <!-- PR6 Blog Commenting Gig -->
+      <div class="gig-row-item">
+        <div class="gig-title-col">
+          <h4>3 PR6 Penguin-Friendly Blog Commenting Dofollow Links</h4>
+          <p>Manually placed links on high-PageRank domains matching search console best practices.</p>
+        </div>
+        <div class="gig-badge-col">
+          <span>Blog Commenting</span>
+          <span>PR6 Dofollow</span>
+        </div>
+        <div class="gig-cta-col">
+          <a href="https://www.fiverr.com/apprentice_need/do-3-pr6-penguin-friendly-blog-commenting-dofollow-on-actual-pr6-pages" target="_blank" class="btn-fiverr">Order Gig</a>
+        </div>
+      </div>
+
+      <!-- Manual backlinks list Gig -->
+      <div class="gig-row-item">
+        <div class="gig-title-col">
+          <h4>44 Premium Dofollow Blog Commenting Backlinks (PR7 to PR3)</h4>
+          <p>Manual link placements across a balanced mix of high authority and PageRank levels.</p>
+        </div>
+        <div class="gig-badge-col">
+          <span>Link Building</span>
+          <span>High Authority Combo</span>
+        </div>
+        <div class="gig-cta-col">
+          <a href="https://www.fiverr.com/apprentice_need/provide-lonely-gig-44-manual-backlinks-from-blog-comments-2pr7-x-3pr6-x-12pr5-x-12xpr4-x-15pr3-all-dofollow-on-actual-page" target="_blank" class="btn-fiverr">Order Gig</a>
+        </div>
+      </div>
+
+      <!-- Anchor Text Backlinks Gig -->
+      <div class="gig-row-item">
+        <div class="gig-title-col">
+          <h4>16 Dofollow Backlinks with Targeted Anchor Text</h4>
+          <p>Custom anchor text configurations designed to optimize search console keyword mappings.</p>
+        </div>
+        <div class="gig-badge-col">
+          <span>Anchor Text Opt</span>
+          <span>Link Velocity</span>
+        </div>
+        <div class="gig-cta-col">
+          <a href="https://www.fiverr.com/apprentice_need/add-16-different-4xpr4pr3pr2pr1-dofollow-sites-your-backlink-with-anchor-text" target="_blank" class="btn-fiverr">Order Gig</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-content">
+      <h2>Let's build your next system.</h2>
+      <p>Hire me directly on Fiverr to launch your custom dashboard portal or ranking campaign.</p>
+      <div class="social-links">
+        <a href="https://www.fiverr.com/apprentice_need" target="_blank">Fiverr Profile</a>
+        <a href="#interactive-suites">Demo Portals</a>
+        <a href="#branding-services">All Gigs</a>
+      </div>
+      <p class="copyright">© 2026 Muhammad Anees. All rights reserved. Portfolio assets built with vanilla premium CSS & JS.</p>
+    </div>
+  </footer>
+</body>
+</html>
